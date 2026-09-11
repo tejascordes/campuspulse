@@ -38,24 +38,13 @@ export default function PostCard({ post, onUpvote }) {
 
   return (
     <div
-      className="p-4 mb-3 rounded-xl transition-colors cursor-pointer"
-      style={{
-        backgroundColor: '#141417',
-        border: '1px solid #232326',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#323238')}
-      onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#232326')}
+      className="p-4 mb-3 rounded-xl transition-colors cursor-pointer bg-[#121215] border border-[#27272a] hover:border-[#3f3f46]"
     >
       {/* Header: Society, Author, Time & Neutral Category Chip */}
       <div className="flex items-center justify-between gap-2 mb-2.5">
         <div className="flex items-center gap-2 min-w-0">
           <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
-            style={{
-              backgroundColor: '#1a1a1f',
-              border: '1px solid #232326',
-              color: '#d4d4d8',
-            }}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 bg-[#18181b] border border-[#27272a] text-zinc-300"
           >
             {societyInitial}
           </div>
@@ -71,12 +60,7 @@ export default function PostCard({ post, onUpvote }) {
 
         {/* Neutral Outline Category Chip */}
         <span
-          className="text-[11px] font-medium px-2 py-0.5 rounded-md flex-shrink-0 whitespace-nowrap"
-          style={{
-            border: '1px solid #232326',
-            color: '#a1a1aa',
-            backgroundColor: 'transparent',
-          }}
+          className="text-[11px] font-medium px-2 py-0.5 rounded-md flex-shrink-0 whitespace-nowrap border border-[#27272a] text-zinc-400 bg-transparent"
         >
           {post.category}
         </span>
@@ -91,14 +75,14 @@ export default function PostCard({ post, onUpvote }) {
       </p>
 
       {/* Footer Actions: Upvote & Comments */}
-      <div className="flex items-center justify-between pt-2.5" style={{ borderTop: '1px solid #1b1b1e' }}>
+      <div className="flex items-center justify-between pt-2.5 border-t border-[#27272a]">
         <button
           onClick={handleUpvote}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer"
           style={{
-            backgroundColor: voted ? '#f4f4f5' : '#1a1a1f',
-            color: voted ? '#0a0a0c' : '#a1a1aa',
-            border: `1px solid ${voted ? '#f4f4f5' : '#232326'}`,
+            backgroundColor: voted ? '#f4f4f5' : '#18181b',
+            color: voted ? '#09090b' : '#a1a1aa',
+            border: `1px solid ${voted ? '#f4f4f5' : '#27272a'}`,
           }}
         >
           <ChevronUp size={14} strokeWidth={voted ? 2.5 : 2} />

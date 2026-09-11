@@ -60,149 +60,132 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
       .slice(0, 2) || 'TU'
 
   return (
-    <div className="h-full overflow-y-auto px-4 pt-10 pb-24" style={{ backgroundColor: '#0a0a0c' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-zinc-100">Profile</h1>
-        <button
-          onClick={onLogout}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
-          style={{
-            backgroundColor: '#141417',
-            border: '1px solid #232326',
-          }}
-        >
-          <LogOut size={13} />
-          <span>Sign Out</span>
-        </button>
-      </div>
+    <div className="h-full w-full overflow-y-auto px-4 pt-6 pb-24 bg-[#09090b]">
+      <div className="max-w-xl mx-auto md:max-w-4xl w-full md:grid md:grid-cols-12 md:gap-6">
+        {/* Left Column: Profile Card, Stats & Sign Out */}
+        <div className="md:col-span-5 space-y-3.5 mb-3.5 md:mb-0">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-zinc-100">Profile</h1>
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors bg-[#121215] border border-[#27272a] hover:border-[#3f3f46] cursor-pointer"
+            >
+              <LogOut size={13} />
+              <span>Sign Out</span>
+            </button>
+          </div>
 
-      {/* Avatar & User Info Card */}
-      <div
-        className="p-4 rounded-xl mb-3 flex items-center gap-3.5"
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #232326',
-        }}
-      >
-        <div
-          className="w-14 h-14 rounded-full flex items-center justify-center text-base font-bold text-zinc-100 flex-shrink-0"
-          style={{
-            backgroundColor: '#1a1a1f',
-            border: '1px solid #232326',
-          }}
-        >
-          {initials}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="text-base font-semibold text-zinc-100 truncate">{user?.name}</h2>
-          <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
-          {user?.bio && (
-            <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{user.bio}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-2.5 mb-3">
-        {STAT_CARDS.map((stat) => (
+          {/* Avatar & User Info Card */}
           <div
-            key={stat.label}
-            className="p-3 rounded-xl text-center"
-            style={{
-              backgroundColor: '#141417',
-              border: '1px solid #232326',
-            }}
+            className="p-4 rounded-xl bg-[#121215] border border-[#27272a] flex items-center gap-3.5"
           >
-            <p className="text-lg font-bold text-zinc-100">{stat.value}</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">{stat.label}</p>
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center text-base font-bold text-zinc-100 flex-shrink-0 bg-[#18181b] border border-[#27272a]"
+            >
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-semibold text-zinc-100 truncate">{user?.name}</h2>
+              <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+              {user?.bio && (
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{user.bio}</p>
+              )}
+            </div>
           </div>
-        ))}
-      </div>
 
-      {/* Calendar Privacy Settings Card */}
-      <div
-        className="p-4 rounded-xl mb-3"
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #232326',
-        }}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="font-semibold text-zinc-100 text-sm">Calendar Privacy Default</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">Control who sees events you add</p>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-3 gap-2.5">
+            {STAT_CARDS.map((stat) => (
+              <div
+                key={stat.label}
+                className="p-3 rounded-xl text-center bg-[#121215] border border-[#27272a]"
+              >
+                <p className="text-lg font-bold text-zinc-100">{stat.value}</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5">{stat.label}</p>
+              </div>
+            ))}
           </div>
-          <AnimatePresence>
-            {saving && <Loader2 size={14} className="animate-spin text-zinc-400" />}
-            {saved && (
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                <Check size={14} className="text-emerald-400" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+          {/* Member Info */}
+          <div
+            className="p-4 rounded-xl bg-[#121215] border border-[#27272a]"
+          >
+            <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">
+              Campus Affiliation
+            </p>
+            <p className="text-xs font-semibold text-zinc-200">
+              Thapar Institute of Engineering & Technology
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-2">
-          {PRIVACY_OPTIONS.map((opt) => {
-            const isActive = privacy === opt.value
-            const Icon = opt.icon
-            return (
-              <button
-                key={opt.value}
-                onClick={() => handlePrivacyChange(opt.value)}
-                className="flex items-center justify-between p-3 rounded-xl text-left transition-colors cursor-pointer"
-                style={{
-                  backgroundColor: isActive ? '#1c1c23' : '#141417',
-                  border: `1px solid ${isActive ? '#52525b' : '#232326'}`,
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+        {/* Right Column: Calendar Privacy Settings */}
+        <div className="md:col-span-7">
+          <div
+            className="p-4 md:p-5 rounded-xl bg-[#121215] border border-[#27272a]"
+          >
+            <div className="flex items-center justify-between mb-3.5">
+              <div>
+                <h3 className="font-semibold text-zinc-100 text-sm">Calendar Privacy Default</h3>
+                <p className="text-xs text-zinc-500 mt-0.5">Control who sees events you add to schedule</p>
+              </div>
+              <AnimatePresence>
+                {saving && <Loader2 size={14} className="animate-spin text-zinc-400" />}
+                {saved && (
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                    <Check size={14} className="text-emerald-400" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              {PRIVACY_OPTIONS.map((opt) => {
+                const isActive = privacy === opt.value
+                const Icon = opt.icon
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => handlePrivacyChange(opt.value)}
+                    className="flex items-center justify-between p-3 rounded-xl text-left transition-colors cursor-pointer"
                     style={{
-                      backgroundColor: '#1a1a1f',
-                      border: '1px solid #232326',
-                      color: isActive ? '#f4f4f5' : '#71717a',
+                      backgroundColor: isActive ? '#18181b' : '#121215',
+                      border: `1px solid ${isActive ? '#52525b' : '#27272a'}`,
                     }}
                   >
-                    <Icon size={16} />
-                  </div>
-                  <div>
-                    <p
-                      className="text-xs font-semibold"
-                      style={{ color: isActive ? '#f4f4f5' : '#a1a1aa' }}
-                    >
-                      {opt.label}
-                    </p>
-                    <p className="text-[11px] text-zinc-500">{opt.sub}</p>
-                  </div>
-                </div>
-                {isActive && (
-                  <div className="w-4 h-4 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-950">
-                    <Check size={11} strokeWidth={3} />
-                  </div>
-                )}
-              </button>
-            )
-          })}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{
+                          backgroundColor: '#18181b',
+                          border: '1px solid #27272a',
+                          color: isActive ? '#f4f4f5' : '#71717a',
+                        }}
+                      >
+                        <Icon size={16} />
+                      </div>
+                      <div>
+                        <p
+                          className="text-xs font-semibold"
+                          style={{ color: isActive ? '#f4f4f5' : '#a1a1aa' }}
+                        >
+                          {opt.label}
+                        </p>
+                        <p className="text-[11px] text-zinc-500">{opt.sub}</p>
+                      </div>
+                    </div>
+                    {isActive && (
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-950">
+                        <Check size={11} strokeWidth={3} />
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Member Info */}
-      <div
-        className="p-4 rounded-xl"
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #232326',
-        }}
-      >
-        <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">
-          Campus Affiliation
-        </p>
-        <p className="text-xs font-semibold text-zinc-200">
-          Thapar Institute of Engineering & Technology
-        </p>
       </div>
     </div>
   )

@@ -50,29 +50,26 @@ export default function App() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-base text-zinc-100">
+    <div className="h-full w-full flex flex-col bg-[#09090b] text-zinc-100 overflow-hidden">
       {isDemoMode && !hideDemoBanner && (
         <div
-          className="px-3 py-1 text-[11px] flex items-center justify-between z-30 flex-shrink-0"
-          style={{
-            backgroundColor: '#18181b',
-            borderBottom: '1px solid #27272a',
-            color: '#a1a1aa',
-          }}
+          className="w-full bg-[#121215] border-b border-[#27272a] px-3 py-1 text-[11px] flex items-center justify-between z-30 flex-shrink-0 text-zinc-400"
         >
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Interactive Demo Mode (Offline Preview)</span>
+          <div className="max-w-xl mx-auto md:max-w-4xl w-full flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Interactive Demo Mode (Offline Preview)</span>
+            </div>
+            <button
+              onClick={() => setHideDemoBanner(true)}
+              className="text-zinc-500 hover:text-zinc-300 text-xs px-1 cursor-pointer"
+            >
+              ✕
+            </button>
           </div>
-          <button
-            onClick={() => setHideDemoBanner(true)}
-            className="text-zinc-500 hover:text-zinc-300 text-xs px-1 cursor-pointer"
-          >
-            ✕
-          </button>
         </div>
       )}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-hidden relative w-full">
         {tab === 'feed' && <FeedView token={token} user={user} />}
         {tab === 'map' && <MapView token={token} />}
         {tab === 'profile' && <ProfileView user={user} token={token} onLogout={handleLogout} onUpdateUser={updateUser} />}

@@ -45,35 +45,26 @@ export default function LoginView({ onLogin }) {
 
   return (
     <div
-      className="h-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
-      style={{ backgroundColor: '#0a0a0c' }}
+      className="h-full w-full flex flex-col items-center justify-center px-4 relative overflow-hidden bg-[#09090b]"
     >
       {/* Top Logo with single signature gradient */}
       <div className="text-center mb-6">
-        <h1 className="text-3xl font-black tracking-tight">
+        <h1 className="text-3xl md:text-4xl font-black tracking-tight">
           <span className="logo-gradient-text">Campus</span>
           <span className="text-zinc-100">Pulse</span>
         </h1>
-        <p className="text-xs text-zinc-500 mt-1">
+        <p className="text-xs md:text-sm text-zinc-500 mt-1">
           Thapar Institute Campus Social Layer
         </p>
       </div>
 
       {/* Card */}
       <div
-        className="w-full max-w-sm p-6 rounded-xl"
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #232326',
-        }}
+        className="w-full max-w-sm md:max-w-md p-6 md:p-8 rounded-2xl bg-[#121215] border border-[#27272a] shadow-2xl"
       >
         {/* Toggle Mode */}
         <div
-          className="flex rounded-xl overflow-hidden mb-5 p-1"
-          style={{
-            backgroundColor: '#101013',
-            border: '1px solid #232326',
-          }}
+          className="flex rounded-xl overflow-hidden mb-5 p-1 bg-[#18181b] border border-[#27272a]"
         >
           {['login', 'register'].map((m) => (
             <button
@@ -82,10 +73,10 @@ export default function LoginView({ onLogin }) {
                 setMode(m)
                 setError('')
               }}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors"
+              className="flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer"
               style={{
                 backgroundColor: mode === m ? '#f4f4f5' : 'transparent',
-                color: mode === m ? '#0a0a0c' : '#71717a',
+                color: mode === m ? '#09090b' : '#71717a',
               }}
             >
               {m === 'login' ? 'Sign In' : 'Register'}
@@ -132,7 +123,7 @@ export default function LoginView({ onLogin }) {
             <button
               type="button"
               onClick={() => setShowPass((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 cursor-pointer"
             >
               {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
@@ -157,7 +148,7 @@ export default function LoginView({ onLogin }) {
 
           <button
             type="submit"
-            className="btn-primary py-2.5 text-xs font-semibold mt-1 flex items-center justify-center gap-2"
+            className="btn-primary py-2.5 text-xs font-semibold mt-1 flex items-center justify-center gap-2 cursor-pointer"
             disabled={loading}
           >
             {loading ? (

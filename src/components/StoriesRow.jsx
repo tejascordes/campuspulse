@@ -28,10 +28,10 @@ export default function StoriesRow({ onSocietyClick }) {
         onClick={() => onSocietyClick?.('CCS')}
       >
         <div className="relative">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#141417] border border-[#232326] group-hover:border-zinc-600 transition-colors">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#121215] border border-[#27272a] group-hover:border-[#3f3f46] transition-colors">
             <Flame size={18} className="text-zinc-300 group-hover:text-white" />
           </div>
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-[#0a0a0c]" />
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-[#09090b]" />
         </div>
         <span className="text-[11px] font-medium text-zinc-400 group-hover:text-zinc-200 transition-colors">
           Today
@@ -42,8 +42,8 @@ export default function StoriesRow({ onSocietyClick }) {
       {loading
         ? Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-1.5 flex-shrink-0 animate-pulse">
-              <div className="w-12 h-12 rounded-full bg-[#141417] border border-[#232326]" />
-              <div className="w-8 h-2 rounded bg-[#141417]" />
+              <div className="w-12 h-12 rounded-full bg-[#121215] border border-[#27272a]" />
+              <div className="w-8 h-2 rounded bg-[#121215]" />
             </div>
           ))
         : societies.map((soc) => {
@@ -59,14 +59,14 @@ export default function StoriesRow({ onSocietyClick }) {
                   <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xs tracking-wider transition-colors ${
                       hasEvents
-                        ? 'bg-[#141417] border border-zinc-500 text-zinc-100 group-hover:border-zinc-300'
-                        : 'bg-[#141417] border border-[#232326] text-zinc-400 group-hover:border-zinc-600 group-hover:text-zinc-200'
+                        ? 'bg-[#18181b] border border-zinc-400 text-zinc-100 group-hover:border-zinc-200'
+                        : 'bg-[#121215] border border-[#27272a] text-zinc-400 group-hover:border-[#3f3f46] group-hover:text-zinc-200'
                     }`}
                   >
                     {initials}
                   </div>
                   {hasEvents && (
-                    <span className="absolute -top-0.5 -right-0.5 px-1 min-w-[14px] h-[14px] rounded-full flex items-center justify-center text-[9px] font-bold bg-zinc-100 text-zinc-950 border border-[#0a0a0c]">
+                    <span className="absolute -top-0.5 -right-0.5 px-1 min-w-[14px] h-[14px] rounded-full flex items-center justify-center text-[9px] font-bold bg-zinc-100 text-zinc-950 border border-[#09090b]">
                       {soc.event_count}
                     </span>
                   )}

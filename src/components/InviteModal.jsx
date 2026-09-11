@@ -52,11 +52,11 @@ export default function InviteModal({ event, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
         {/* Backdrop */}
         <motion.div
           className="absolute inset-0"
-          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -65,20 +65,13 @@ export default function InviteModal({ event, onClose }) {
 
         {/* Sheet */}
         <motion.div
-          className="relative w-full max-w-md p-5 rounded-t-2xl z-10"
-          style={{
-            backgroundColor: '#141417',
-            border: '1px solid #232326',
-            borderBottom: 'none',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-          }}
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
+          className="relative w-full max-w-md p-5 rounded-t-2xl md:rounded-2xl z-10 bg-[#121215] border border-[#27272a] max-h-[90vh] overflow-y-auto shadow-2xl"
+          initial={{ y: '100%', opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 30, stiffness: 400 }}
         >
-          <div className="drag-handle" />
+          <div className="drag-handle md:hidden" />
 
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -88,8 +81,7 @@ export default function InviteModal({ event, onClose }) {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors"
-              style={{ backgroundColor: '#1a1a1f', border: '1px solid #232326' }}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46] cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -97,11 +89,7 @@ export default function InviteModal({ event, onClose }) {
 
           {/* Event Quick Info */}
           <div
-            className="p-3 rounded-xl mb-4"
-            style={{
-              backgroundColor: '#1a1a1f',
-              border: '1px solid #232326',
-            }}
+            className="p-3 rounded-xl mb-4 bg-[#18181b] border border-[#27272a]"
           >
             <p className="text-xs text-zinc-500">{event.society_name} presents</p>
             <p className="text-sm font-semibold text-zinc-100 line-clamp-1">{event.title}</p>
@@ -122,7 +110,7 @@ export default function InviteModal({ event, onClose }) {
               />
               <button
                 type="submit"
-                className="btn-secondary px-3.5 flex items-center justify-center rounded-xl"
+                className="btn-secondary px-3.5 flex items-center justify-center rounded-xl cursor-pointer"
               >
                 <Plus size={16} />
               </button>
@@ -133,18 +121,13 @@ export default function InviteModal({ event, onClose }) {
               {emails.map((em) => (
                 <div
                   key={em}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                  style={{
-                    backgroundColor: '#1a1a1f',
-                    border: '1px solid #232326',
-                    color: '#d4d4d8',
-                  }}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#18181b] border border-[#27272a] text-zinc-300"
                 >
                   <span>{em}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveEmail(em)}
-                    className="p-0.5 rounded-full text-zinc-500 hover:text-zinc-300"
+                    className="p-0.5 rounded-full text-zinc-500 hover:text-zinc-300 cursor-pointer"
                   >
                     <X size={12} />
                   </button>
@@ -170,7 +153,7 @@ export default function InviteModal({ event, onClose }) {
           <div className="flex gap-2.5">
             <button
               onClick={handleCopyLink}
-              className="btn-secondary flex-1 py-3 text-xs flex items-center justify-center gap-1.5"
+              className="btn-secondary flex-1 py-3 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
               {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
               <span>{copied ? 'Link Copied!' : 'Copy Event Link'}</span>
@@ -179,7 +162,7 @@ export default function InviteModal({ event, onClose }) {
             <button
               onClick={handleSendInvites}
               disabled={sending || sent || emails.length === 0}
-              className={`flex-1 py-3 text-xs flex items-center justify-center gap-1.5 rounded-xl transition-colors ${
+              className={`flex-1 py-3 text-xs flex items-center justify-center gap-1.5 rounded-xl transition-colors cursor-pointer ${
                 sent
                   ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800'
                   : 'btn-primary'

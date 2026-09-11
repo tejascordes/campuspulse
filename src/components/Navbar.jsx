@@ -10,14 +10,12 @@ const tabs = [
 export default function Navbar({ activeTab, onTabChange }) {
   return (
     <nav
-      className="relative z-50 flex-shrink-0"
+      className="w-full relative z-50 flex-shrink-0 bg-[#09090b] border-t border-[#27272a]"
       style={{
-        backgroundColor: '#0a0a0c',
-        borderTop: '1px solid #232326',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
-      <div className="flex items-center justify-around px-4 pt-2.5 pb-3">
+      <div className="max-w-xl mx-auto md:max-w-4xl flex items-center justify-around px-4 pt-2.5 pb-3">
         {tabs.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id
           return (

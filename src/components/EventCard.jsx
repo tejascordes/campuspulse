@@ -62,23 +62,13 @@ export default function EventCard({ event, onUpdate }) {
   return (
     <>
       <div
-        className="p-4 mb-3.5 rounded-xl transition-colors cursor-pointer"
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #232326',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#323238')}
-        onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#232326')}
+        className="p-4 mb-3.5 rounded-xl transition-colors cursor-pointer bg-[#121215] border border-[#27272a] hover:border-[#3f3f46]"
       >
         {/* Top Section: Date box & Details */}
         <div className="flex items-start gap-3 mb-3">
           {/* Subtle Date Box */}
           <div
-            className="flex flex-col items-center justify-center w-11 h-12 rounded-lg flex-shrink-0"
-            style={{
-              backgroundColor: '#1a1a1f',
-              border: '1px solid #232326',
-            }}
+            className="flex flex-col items-center justify-center w-11 h-12 rounded-lg flex-shrink-0 bg-[#18181b] border border-[#27272a]"
           >
             <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
               {monthStr}
@@ -95,12 +85,7 @@ export default function EventCard({ event, onUpdate }) {
                 {event.society_name}
               </span>
               <span
-                className="text-[11px] font-medium px-2 py-0.5 rounded-md"
-                style={{
-                  border: '1px solid #232326',
-                  color: '#a1a1aa',
-                  backgroundColor: 'transparent',
-                }}
+                className="text-[11px] font-medium px-2 py-0.5 rounded-md border border-[#27272a] text-zinc-400 bg-transparent"
               >
                 {event.category}
               </span>
@@ -147,8 +132,7 @@ export default function EventCard({ event, onUpdate }) {
             </span>
           </div>
           <div
-            className="w-full h-1.5 rounded-full overflow-hidden"
-            style={{ backgroundColor: '#1a1a1f', border: '1px solid #232326' }}
+            className="w-full h-1.5 rounded-full overflow-hidden bg-[#18181b] border border-[#27272a]"
           >
             <div
               className={`h-full rounded-full transition-all duration-300 ${
@@ -165,11 +149,7 @@ export default function EventCard({ event, onUpdate }) {
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full flex items-center justify-between p-2 rounded-lg cursor-pointer text-left transition-colors"
-              style={{
-                backgroundColor: '#1a1a1f',
-                border: '1px solid #232326',
-              }}
+              className="w-full flex items-center justify-between p-2 rounded-lg cursor-pointer text-left transition-colors bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46]"
             >
               <span className="text-xs font-medium text-zinc-300">
                 Itinerary & Timeline ({event.itinerary.length} items)
@@ -192,17 +172,12 @@ export default function EventCard({ event, onUpdate }) {
                   className="overflow-hidden"
                 >
                   <div
-                    className="mt-2 p-3 rounded-lg flex flex-col gap-2"
-                    style={{
-                      backgroundColor: '#101013',
-                      border: '1px solid #232326',
-                    }}
+                    className="mt-2 p-3 rounded-lg flex flex-col gap-2 bg-[#0e0e11] border border-[#27272a]"
                   >
                     {event.itinerary.map((item, idx) => (
                       <div key={idx} className="flex items-start gap-2.5 text-xs">
                         <span
-                          className="text-[11px] font-mono px-1.5 py-0.5 rounded text-zinc-300 flex-shrink-0"
-                          style={{ backgroundColor: '#1a1a1f', border: '1px solid #232326' }}
+                          className="text-[11px] font-mono px-1.5 py-0.5 rounded text-zinc-300 flex-shrink-0 bg-[#18181b] border border-[#27272a]"
                         >
                           {item.time}
                         </span>
@@ -217,7 +192,7 @@ export default function EventCard({ event, onUpdate }) {
         )}
 
         {/* Action Buttons Row */}
-        <div className="flex items-center gap-2 pt-2.5" style={{ borderTop: '1px solid #1b1b1e' }}>
+        <div className="flex items-center gap-2 pt-2.5 border-t border-[#27272a]">
           {/* Main Register Button: Saturated accent strictly for active / registered status */}
           <button
             type="button"
@@ -243,12 +218,7 @@ export default function EventCard({ event, onUpdate }) {
           <button
             type="button"
             onClick={() => setShowCalendarModal(true)}
-            className="p-2 rounded-xl border cursor-pointer flex items-center justify-center transition-colors"
-            style={{
-              backgroundColor: '#1a1a1f',
-              borderColor: '#232326',
-              color: '#a1a1aa',
-            }}
+            className="p-2 rounded-xl border border-[#27272a] bg-[#18181b] text-zinc-400 hover:text-zinc-200 hover:border-[#3f3f46] cursor-pointer flex items-center justify-center transition-colors"
             title="Save to Campus Calendar"
           >
             <CalendarIcon size={14} />
@@ -258,12 +228,7 @@ export default function EventCard({ event, onUpdate }) {
           <button
             type="button"
             onClick={() => setShowInviteModal(true)}
-            className="p-2 rounded-xl border cursor-pointer flex items-center justify-center transition-colors"
-            style={{
-              backgroundColor: '#1a1a1f',
-              borderColor: '#232326',
-              color: '#a1a1aa',
-            }}
+            className="p-2 rounded-xl border border-[#27272a] bg-[#18181b] text-zinc-400 hover:text-zinc-200 hover:border-[#3f3f46] cursor-pointer flex items-center justify-center transition-colors"
             title="Invite Friends"
           >
             <UserPlus size={14} />

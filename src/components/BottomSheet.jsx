@@ -35,13 +35,7 @@ export default function BottomSheet({ pin, onClose }) {
       />
       <motion.div
         key="sheet"
-        className="absolute bottom-0 left-0 right-0 z-40 rounded-t-2xl overflow-hidden"
-        style={{
-          backgroundColor: '#141417',
-          border: '1px solid #232326',
-          borderBottom: 'none',
-          maxHeight: '70vh',
-        }}
+        className="absolute bottom-0 left-0 right-0 z-40 rounded-t-2xl overflow-hidden bg-[#121215] border border-[#27272a] border-b-0 max-h-[70vh]"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -64,12 +58,7 @@ export default function BottomSheet({ pin, onClose }) {
             <div className="flex-1 min-w-0 pr-2">
               <div className="flex items-center gap-2 mb-1.5">
                 <span
-                  className="text-[11px] font-medium px-2 py-0.5 rounded-md"
-                  style={{
-                    border: '1px solid #232326',
-                    color: '#a1a1aa',
-                    backgroundColor: 'transparent',
-                  }}
+                  className="text-[11px] font-medium px-2 py-0.5 rounded-md border border-[#27272a] text-zinc-400 bg-transparent"
                 >
                   {pin.category}
                 </span>
@@ -86,8 +75,7 @@ export default function BottomSheet({ pin, onClose }) {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors"
-              style={{ backgroundColor: '#1a1a1f', border: '1px solid #232326' }}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46] cursor-pointer"
             >
               <X size={16} />
             </button>
@@ -96,12 +84,7 @@ export default function BottomSheet({ pin, onClose }) {
           {/* Rating */}
           <div className="flex items-center gap-2 mb-3.5">
             <div
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold"
-              style={{
-                backgroundColor: '#1a1a1f',
-                border: '1px solid #232326',
-                color: '#f4f4f5',
-              }}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold bg-[#18181b] border border-[#27272a] text-[#f4f4f5]"
             >
               <Star size={13} fill="#eab308" color="#eab308" />
               <span>{pin.rating}</span>
