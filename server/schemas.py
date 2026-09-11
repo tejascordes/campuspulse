@@ -211,7 +211,12 @@ class FriendInviteOut(BaseModel):
         from_attributes = True
 
 
-# ── Friends & In-App Direct Share Schemas ─────────────────────────────────────
+class FriendAddRequest(BaseModel):
+    friend_id: Optional[int] = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    is_close_friend: bool = False
+
 
 class FriendOut(BaseModel):
     id: int

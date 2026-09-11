@@ -427,6 +427,57 @@ const SEED_SOCIETIES = [
   },
 ]
 
+const SEED_FRIENDS = [
+  {
+    id: 101,
+    name: "Ananya Sharma",
+    email: "ananya.s@thapar.edu",
+    bio: "COE '26 | Web Dev & Design",
+    branch: "COE '26",
+    is_close_friend: true,
+  },
+  {
+    id: 102,
+    name: "Kabir Singh",
+    email: "kabir.s@thapar.edu",
+    bio: "ENC '25 | Music & Robotics",
+    branch: "ENC '25",
+    is_close_friend: true,
+  },
+  {
+    id: 103,
+    name: "Rohan Verma",
+    email: "rohan.v@thapar.edu",
+    bio: "CSBS '26 | AI Research & Hackathons",
+    branch: "CSBS '26",
+    is_close_friend: true,
+  },
+  {
+    id: 104,
+    name: "Priya Patel",
+    email: "priya.p@thapar.edu",
+    bio: "ELE '25 | Fine Arts & Photo",
+    branch: "ELE '25",
+    is_close_friend: false,
+  },
+  {
+    id: 105,
+    name: "Tanmay Roy",
+    email: "tanmay.r@thapar.edu",
+    bio: "MECH '26 | Drone Racing",
+    branch: "MECH '26",
+    is_close_friend: false,
+  },
+  {
+    id: 106,
+    name: "Simran Kaur",
+    email: "simran.k@thapar.edu",
+    bio: "COE '26 | Street Play & Dramatics",
+    branch: "COE '26",
+    is_close_friend: false,
+  },
+]
+
 const DEFAULT_USER = {
   id: 1,
   name: "Demo Student",
@@ -449,6 +500,7 @@ class MockStore {
         this.events = parsed.events || SEED_EVENTS
         this.posts = parsed.posts || SEED_POSTS
         this.societies = parsed.societies || SEED_SOCIETIES
+        this.friends = parsed.friends || SEED_FRIENDS
         this.user = parsed.user || DEFAULT_USER
         return
       }
@@ -459,6 +511,7 @@ class MockStore {
     this.events = [...SEED_EVENTS]
     this.posts = [...SEED_POSTS]
     this.societies = [...SEED_SOCIETIES]
+    this.friends = [...SEED_FRIENDS]
     this.user = { ...DEFAULT_USER }
     this.persist()
   }
@@ -472,6 +525,7 @@ class MockStore {
           events: this.events,
           posts: this.posts,
           societies: this.societies,
+          friends: this.friends,
           user: this.user,
         })
       )
@@ -600,6 +654,75 @@ class MockStore {
     }
   }
 
+  createEvent(data) {
+    const newEvent = {
+      id: Date.now(),
+      society_name: data.society_name || "Campus Community",
+      title: data.title,
+      description: data.description,
+      tagline: data.tagline || `${data.society_name || "Campus"} Event`,
+      venue: data.venue || "Campus Grounds",
+      event_date: data.event_date || new Date(Date.now() + 2 * 24 * 3600000).toISOString(),
+      event_end_date: data.event_end_date || null,
+      max_capacity: Number(data.max_capacity) || 150,
+      registered_count: 1,
+      is_registered: true,
+      category: data.category || "Tech",
+      icon_color: data.icon_color || "#9D4EDD",
+      friends_attending: ["You"],
+      itinerary: data.itinerary || [
+        { time: "10:00 AM", activity: "Opening & Welcome" },
+        { time: "11:30 AM", activity: "Keynote & Main Session" },
+        { time: "02:00 PM", activity: "Networking & Conclusion" },
+      ],
+      created_at: new Date().toISOString(),
+    }
+    this.events.unshift(newEvent)
+    this.persist()
+    return newEvent
+  }
+
+  getFriends() {
+    return this.friends || []
+  }
+
+  addFriend(data) {
+    const rawName = (data.username || (data.email ? data.email.split("@")[0] : "Campus Friend")).trim()
+    const rawEmail = (data.email || `${rawName.toLowerCase().replace(/\s+/g, ".")}@thapar.edu`).trim()
+
+    // Check if already in list
+    const existing = this.friends.find(
+      (f) =>
+        (data.friend_id && f.id === Number(data.friend_id)) ||
+        f.email.toLowerCase() === rawEmail.toLowerCase() ||
+        f.name.toLowerCase() === rawName.toLowerCase()
+    )
+
+    if (existing) {
+      existing.is_close_friend = data.is_close_friend ?? existing.is_close_friend
+      this.persist()
+      return existing
+    }
+
+    const newFriend = {
+      id: data.friend_id ? Number(data.friend_id) : Date.now(),
+      name: rawName,
+      email: rawEmail,
+      bio: `COE '26 | ${rawName}`,
+      branch: "COE '26",
+      is_close_friend: Boolean(data.is_close_friend),
+    }
+    this.friends.unshift(newFriend)
+    this.persist()
+    return newFriend
+  }
+
+  removeFriend(id) {
+    this.friends = this.friends.filter((f) => f.id !== Number(id))
+    this.persist()
+    return { success: true, message: "Friend removed successfully" }
+  }
+
   updateProfile(data) {
     this.user = {
       ...this.user,
@@ -611,3 +734,4 @@ class MockStore {
 }
 
 export const mockStore = new MockStore()
+

@@ -143,6 +143,7 @@ async def get_event(
     return format_event_out(event, is_registered)
 
 
+@router.post("/events/create", response_model=EventOut)
 @router.post("/events", response_model=EventOut)
 async def create_event(
     data: EventCreate,

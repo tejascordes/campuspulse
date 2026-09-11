@@ -6,11 +6,11 @@ from sqlalchemy import select
 
 from database import engine, AsyncSessionLocal, Base
 from models import (
-    User, Post, MapPin, CalendarEvent, Event,
+    User, Post, MapPin, CalendarEvent, Event, Friendship,
     PostCategory as PostCategoryEnum,
     CalendarPrivacy as CalendarPrivacyEnum,
 )
-from routers import auth, posts, map_pins, calendar, events
+from routers import auth, posts, map_pins, calendar, events, friends
 from routers.auth import hash_password
 
 app = FastAPI(title="CampusPulse API", version="1.0.0")
@@ -30,6 +30,7 @@ app.include_router(posts.router)
 app.include_router(map_pins.router)
 app.include_router(calendar.router)
 app.include_router(events.router)
+app.include_router(friends.router)
 
 
 # ── Seed Data ─────────────────────────────────────────────────────────────────
@@ -257,6 +258,28 @@ async def seed_db():
             bio="CSE '26 | Hackathon enthusiast | Coffee addict",
         )
         db.add(demo)
+        await db.flush()
+
+        # Classmate friends
+        classmates = [
+            User(name="Ananya Sharma", email="ananya.s@thapar.edu", hashed_password=hash_password("thapar123"), bio="COE '26 | Web Dev & Design"),
+            User(name="Kabir Singh", email="kabir.s@thapar.edu", hashed_password=hash_password("thapar123"), bio="ENC '25 | Music & Robotics"),
+            User(name="Rohan Verma", email="rohan.v@thapar.edu", hashed_password=hash_password("thapar123"), bio="CSBS '26 | AI Research & Hackathons"),
+            User(name="Priya Patel", email="priya.p@thapar.edu", hashed_password=hash_password("thapar123"), bio="ELE '25 | Fine Arts & Photo"),
+            User(name="Tanmay Roy", email="tanmay.r@thapar.edu", hashed_password=hash_password("thapar123"), bio="MECH '26 | Drone Racing"),
+            User(name="Simran Kaur", email="simran.k@thapar.edu", hashed_password=hash_password("thapar123"), bio="COE '26 | Street Play & Dramatics"),
+        ]
+        for cm in classmates:
+            db.add(cm)
+        await db.flush()
+
+        # Connect initial friendships
+        for i, cm in enumerate(classmates):
+            db.add(Friendship(
+                user_id=demo.id,
+                friend_id=cm.id,
+                is_close_friend=(i < 3),
+            ))
 
         # Map pins
         for p in SEED_PINS:

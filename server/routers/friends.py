@@ -6,7 +6,8 @@ from sqlalchemy import select, or_, and_
 
 from database import get_db
 from models import User, Friendship, Event, Notification, FriendInvite
-from schemas import FriendOut, DirectShareRequest, NotificationOut
+from schemas import FriendOut, FriendAddRequest, DirectShareRequest, NotificationOut
+from routers.auth import hash_password
 
 router = APIRouter(prefix="/api", tags=["friends_and_sharing"])
 
@@ -21,6 +22,7 @@ async def list_friends(
         select(Friendship, User)
         .join(User, Friendship.friend_id == User.id)
         .where(Friendship.user_id == user_id)
+        .order_by(Friendship.created_at.desc())
     )
     rows = result.all()
 
@@ -46,6 +48,114 @@ async def list_friends(
         )
 
     return friends
+
+
+@router.post("/friends/add", response_model=FriendOut)
+async def add_friend(
+    data: FriendAddRequest,
+    user_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+):
+    """Handles adding a new friend or connecting by user ID, email, or username."""
+    target_user = None
+
+    if data.friend_id:
+        res = await db.execute(select(User).where(User.id == data.friend_id))
+        target_user = res.scalar_one_or_none()
+
+    if not target_user and data.email:
+        res = await db.execute(select(User).where(User.email.ilike(data.email.strip())))
+        target_user = res.scalar_one_or_none()
+
+    if not target_user and data.username:
+        search_str = data.username.strip()
+        res = await db.execute(
+            select(User).where(
+                or_(
+                    User.name.ilike(f"%{search_str}%"),
+                    User.email.ilike(f"%{search_str}%"),
+                )
+            )
+        )
+        target_user = res.scalars().first()
+
+    # If user doesn't exist yet, create a student user record dynamically
+    if not target_user:
+        raw_name = (data.username or (data.email.split("@")[0] if data.email else "Student")).strip()
+        email_prefix = raw_name.lower().replace(" ", ".")
+        new_email = data.email.strip() if data.email else f"{email_prefix}@thapar.edu"
+
+        target_user = User(
+            name=raw_name,
+            email=new_email,
+            hashed_password=hash_password("campus1234"),
+            bio=f"COE '26 | {raw_name}",
+        )
+        db.add(target_user)
+        await db.flush()
+        await db.refresh(target_user)
+
+    if target_user.id == user_id:
+        raise HTTPException(status_code=400, detail="You cannot add yourself as a friend.")
+
+    # Check if already friends
+    existing_ship = await db.execute(
+        select(Friendship).where(
+            Friendship.user_id == user_id,
+            Friendship.friend_id == target_user.id,
+        )
+    )
+    ship = existing_ship.scalar_one_or_none()
+
+    if not ship:
+        ship = Friendship(
+            user_id=user_id,
+            friend_id=target_user.id,
+            is_close_friend=data.is_close_friend,
+        )
+        db.add(ship)
+        await db.commit()
+    else:
+        if data.is_close_friend != ship.is_close_friend:
+            ship.is_close_friend = data.is_close_friend
+            await db.commit()
+
+    branch = "COE '26"
+    if target_user.bio and "|" in target_user.bio:
+        branch = target_user.bio.split("|")[0].strip()
+    elif target_user.bio:
+        branch = target_user.bio
+
+    return FriendOut(
+        id=target_user.id,
+        name=target_user.name,
+        email=target_user.email,
+        avatar_url=target_user.avatar_url,
+        bio=target_user.bio,
+        is_close_friend=ship.is_close_friend,
+        branch=branch,
+    )
+
+
+@router.delete("/friends/{friend_id}")
+async def remove_friend(
+    friend_id: int,
+    user_id: int = 1,
+    db: AsyncSession = Depends(get_db),
+):
+    """Removes a friend connection."""
+    result = await db.execute(
+        select(Friendship).where(
+            Friendship.user_id == user_id,
+            Friendship.friend_id == friend_id,
+        )
+    )
+    ship = result.scalar_one_or_none()
+    if ship:
+        await db.delete(ship)
+        await db.commit()
+        return {"success": True, "message": "Friend removed successfully"}
+    return {"success": True, "message": "Friendship not found or already removed"}
 
 
 @router.post("/events/{event_id}/direct-share")

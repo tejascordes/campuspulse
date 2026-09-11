@@ -8,7 +8,12 @@ import {
   X,
   ChevronDown,
   CalendarDays,
+  CalendarPlus,
   Users,
+  MapPin,
+  Clock,
+  Sparkles,
+  CheckCircle2,
 } from 'lucide-react'
 import { postsApi, eventsApi } from '../api.js'
 import FilterPills from '../components/FilterPills.jsx'
@@ -17,6 +22,17 @@ import StoriesRow from '../components/StoriesRow.jsx'
 import SocietyHub from '../components/SocietyHub.jsx'
 
 const CATEGORIES = ['Tech', 'Non-Tech', 'Hackathons', 'Prizes Only', 'Refreshments']
+const KNOWN_SOCIETIES = ['CCS', 'Mudra', 'FAP', 'Trident', 'E-Cell', 'Rotaract', 'Quiz Club', 'Aagaaz']
+const KNOWN_VENUES = [
+  'LHC Auditorium',
+  'Nirvana Park',
+  'Open Air Theatre (OAT)',
+  'EDC Step Building',
+  'Main Cafeteria',
+  'Sports Ground Complex',
+  'Thapar Central Library',
+  'F-Block CS Lab 301',
+]
 
 export default function FeedView({
   token,
@@ -30,13 +46,30 @@ export default function FeedView({
   const [loading, setLoading] = useState(true)
   const [selectedSociety, setSelectedSociety] = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [modalMode, setModalMode] = useState('event') // 'event' | 'post'
+
+  // New Event Form State
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    society_name: 'CCS',
+    category: 'Tech',
+    venue: 'LHC Auditorium',
+    event_date: '',
+    max_capacity: 150,
+    tagline: '',
+    description: '',
+  })
+
+  // New Post Form State
   const [newPost, setNewPost] = useState({
     society_name: '',
     category: 'Tech',
     title: '',
     description: '',
   })
+
   const [submitting, setSubmitting] = useState(false)
+  const [publishSuccess, setPublishSuccess] = useState('')
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -59,6 +92,52 @@ export default function FeedView({
     feedMode === 'friends'
       ? events.filter((e) => e.friends_attending && e.friends_attending.length > 0)
       : events
+
+  const handleCreateEvent = async (e) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setPublishSuccess('')
+    try {
+      const eventDateIso = newEvent.event_date
+        ? new Date(newEvent.event_date).toISOString()
+        : new Date(Date.now() + 2 * 24 * 3600000).toISOString()
+
+      const payload = {
+        title: newEvent.title.trim(),
+        society_name: newEvent.society_name.trim() || 'Campus Community',
+        category: newEvent.category,
+        venue: newEvent.venue.trim() || 'Campus Grounds',
+        event_date: eventDateIso,
+        max_capacity: Number(newEvent.max_capacity) || 150,
+        tagline: newEvent.tagline.trim() || `${newEvent.society_name} Campus Event`,
+        description: newEvent.description.trim(),
+      }
+
+      const created = await eventsApi.createEvent(payload)
+      setPublishSuccess(`"${created.title}" published to live campus feed!`)
+      setEvents((prev) => [created, ...prev])
+      
+      setTimeout(() => {
+        setShowCreateModal(false)
+        setPublishSuccess('')
+        setNewEvent({
+          title: '',
+          society_name: 'CCS',
+          category: 'Tech',
+          venue: 'LHC Auditorium',
+          event_date: '',
+          max_capacity: 150,
+          tagline: '',
+          description: '',
+        })
+        fetchData()
+      }, 1000)
+    } catch (err) {
+      console.error('Failed to create event:', err)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const handleCreatePost = async (e) => {
     e.preventDefault()
@@ -168,7 +247,7 @@ export default function FeedView({
                 <p className="text-xs text-zinc-500">
                   {feedMode === 'friends'
                     ? 'Invite classmates or check back when friends RSVP to campus events!'
-                    : 'Check back later for upcoming society events.'}
+                    : 'Check back later for upcoming society events or create one now.'}
                 </p>
               </div>
             ) : (
@@ -190,15 +269,33 @@ export default function FeedView({
           <div className="hidden md:flex md:col-span-4 flex-col gap-4 sticky top-0 self-start">
             {/* Quick Compose Card */}
             <div className="bg-[#121215] border border-[#27272a] rounded-xl p-4">
-              <h3 className="text-sm font-bold text-zinc-100 mb-1">Create Pulse</h3>
-              <p className="text-xs text-zinc-500 mb-3">Broadcast announcements or society updates.</p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="btn-primary w-full py-2.5 text-xs font-semibold flex items-center justify-center gap-2"
-              >
-                <Plus size={15} />
-                <span>New Campus Post</span>
-              </button>
+              <div className="flex items-center gap-1.5 mb-1">
+                <Sparkles size={15} className="text-amber-400" />
+                <h3 className="text-sm font-bold text-zinc-100">Publish to Campus</h3>
+              </div>
+              <p className="text-xs text-zinc-500 mb-3">Host a workshop, hackathon, or cultural fest.</p>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    setModalMode('event')
+                    setShowCreateModal(true)
+                  }}
+                  className="btn-primary w-full py-2.5 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <CalendarPlus size={15} />
+                  <span>Create Campus Event</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setModalMode('post')
+                    setShowCreateModal(true)
+                  }}
+                  className="btn-secondary w-full py-2 text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Plus size={14} />
+                  <span>New Discussion Post</span>
+                </button>
+              </div>
             </div>
 
             {/* Quick Campus Stats Card */}
@@ -256,8 +353,12 @@ export default function FeedView({
 
       {/* FAB on mobile / tablet */}
       <button
-        className="btn-primary md:hidden absolute right-4 bottom-20 w-12 h-12 rounded-xl flex items-center justify-center z-20 shadow-lg"
-        onClick={() => setShowCreateModal(true)}
+        className="btn-primary md:hidden absolute right-4 bottom-20 w-12 h-12 rounded-xl flex items-center justify-center z-20 shadow-lg cursor-pointer"
+        onClick={() => {
+          setModalMode('event')
+          setShowCreateModal(true)
+        }}
+        title="Create Event"
       >
         <Plus size={20} strokeWidth={2.5} />
       </button>
@@ -272,7 +373,7 @@ export default function FeedView({
         />
       )}
 
-      {/* Create Post Modal */}
+      {/* Create Event / Post Modal */}
       <AnimatePresence>
         {showCreateModal && (
           <>
@@ -286,75 +387,279 @@ export default function FeedView({
             />
             <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center pointer-events-none p-0 md:p-4">
               <motion.div
-                className="w-full max-w-xl md:max-w-lg p-5 rounded-t-2xl md:rounded-2xl pointer-events-auto bg-[#121215] border border-[#27272a] max-h-[85vh] overflow-y-auto"
+                className="w-full max-w-xl md:max-w-lg p-5 rounded-t-2xl md:rounded-2xl pointer-events-auto bg-[#121215] border border-[#27272a] max-h-[90vh] overflow-y-auto shadow-2xl"
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 450, damping: 35 }}
               >
                 <div className="drag-handle md:hidden" />
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-base font-bold text-zinc-100">Create Post</h2>
+                
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <CalendarPlus size={18} className="text-zinc-300" />
+                    <h2 className="text-base font-bold text-zinc-100">
+                      {modalMode === 'event' ? 'Create Campus Event' : 'Create Discussion Post'}
+                    </h2>
+                  </div>
                   <button
                     onClick={() => setShowCreateModal(false)}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors bg-[#18181b] border border-[#27272a]"
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors bg-[#18181b] border border-[#27272a] cursor-pointer"
                   >
                     <X size={15} />
                   </button>
                 </div>
 
-                <form onSubmit={handleCreatePost} className="flex flex-col gap-3">
-                  <input
-                    className="input-standard"
-                    placeholder="Society name (e.g. CCS, Mudra)"
-                    value={newPost.society_name}
-                    onChange={(e) => setNewPost((p) => ({ ...p, society_name: e.target.value }))}
-                    required
-                  />
-
-                  <div className="relative">
-                    <select
-                      className="input-standard appearance-none pr-10"
-                      value={newPost.category}
-                      onChange={(e) => setNewPost((p) => ({ ...p, category: e.target.value }))}
-                    >
-                      {CATEGORIES.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={14}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500"
-                    />
-                  </div>
-
-                  <input
-                    className="input-standard"
-                    placeholder="Post title"
-                    value={newPost.title}
-                    onChange={(e) => setNewPost((p) => ({ ...p, title: e.target.value }))}
-                    required
-                  />
-
-                  <textarea
-                    className="input-standard resize-none"
-                    rows={4}
-                    placeholder="What's happening on campus?"
-                    value={newPost.description}
-                    onChange={(e) => setNewPost((p) => ({ ...p, description: e.target.value }))}
-                    required
-                  />
-
+                {/* Modal Mode Selector */}
+                <div className="p-1 rounded-xl flex items-center bg-[#18181b] border border-[#27272a] mb-4">
                   <button
-                    type="submit"
-                    className="btn-primary py-3 text-sm mt-1 flex items-center justify-center gap-2"
-                    disabled={submitting}
+                    type="button"
+                    onClick={() => setModalMode('event')}
+                    className="flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 border-none cursor-pointer transition-colors"
+                    style={{
+                      backgroundColor: modalMode === 'event' ? '#f4f4f5' : 'transparent',
+                      color: modalMode === 'event' ? '#09090b' : '#71717a',
+                    }}
                   >
-                    {submitting ? <Loader2 size={16} className="animate-spin" /> : 'Publish Post'}
+                    <CalendarPlus size={13} />
+                    <span>Event Details</span>
                   </button>
-                </form>
+                  <button
+                    type="button"
+                    onClick={() => setModalMode('post')}
+                    className="flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 border-none cursor-pointer transition-colors"
+                    style={{
+                      backgroundColor: modalMode === 'post' ? '#f4f4f5' : 'transparent',
+                      color: modalMode === 'post' ? '#09090b' : '#71717a',
+                    }}
+                  >
+                    <Plus size={13} />
+                    <span>Quick Post</span>
+                  </button>
+                </div>
+
+                {publishSuccess && (
+                  <div className="p-3 mb-3 rounded-xl bg-emerald-950/50 border border-emerald-800 text-emerald-400 text-xs flex items-center gap-2">
+                    <CheckCircle2 size={16} />
+                    <span>{publishSuccess}</span>
+                  </div>
+                )}
+
+                {/* Event Creation Form */}
+                {modalMode === 'event' ? (
+                  <form onSubmit={handleCreateEvent} className="flex flex-col gap-3">
+                    {/* Event Title */}
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                        Event Title *
+                      </label>
+                      <input
+                        className="input-standard"
+                        placeholder="e.g. HackThapar '25 or Live Acoustic Jam"
+                        value={newEvent.title}
+                        onChange={(e) => setNewEvent((p) => ({ ...p, title: e.target.value }))}
+                        required
+                      />
+                    </div>
+
+                    {/* Society & Category Row */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                          Host Society *
+                        </label>
+                        <div className="relative">
+                          <select
+                            className="input-standard appearance-none pr-8 text-xs"
+                            value={newEvent.society_name}
+                            onChange={(e) => setNewEvent((p) => ({ ...p, society_name: e.target.value }))}
+                          >
+                            {KNOWN_SOCIETIES.map((s) => (
+                              <option key={s} value={s}>{s}</option>
+                            ))}
+                            <option value="Campus Community">Other / Independent</option>
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                          Category *
+                        </label>
+                        <div className="relative">
+                          <select
+                            className="input-standard appearance-none pr-8 text-xs"
+                            value={newEvent.category}
+                            onChange={(e) => setNewEvent((p) => ({ ...p, category: e.target.value }))}
+                          >
+                            {CATEGORIES.map((c) => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Venue & Capacity Row */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                          Venue / Location
+                        </label>
+                        <div className="relative">
+                          <select
+                            className="input-standard appearance-none pr-8 text-xs"
+                            value={newEvent.venue}
+                            onChange={(e) => setNewEvent((p) => ({ ...p, venue: e.target.value }))}
+                          >
+                            {KNOWN_VENUES.map((v) => (
+                              <option key={v} value={v}>{v}</option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                          Capacity
+                        </label>
+                        <input
+                          type="number"
+                          min="10"
+                          max="2000"
+                          className="input-standard text-xs"
+                          placeholder="150"
+                          value={newEvent.max_capacity}
+                          onChange={(e) => setNewEvent((p) => ({ ...p, max_capacity: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Date & Time Picker */}
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                        Event Date & Time *
+                      </label>
+                      <input
+                        type="datetime-local"
+                        className="input-standard text-xs"
+                        value={newEvent.event_date}
+                        onChange={(e) => setNewEvent((p) => ({ ...p, event_date: e.target.value }))}
+                        required
+                      />
+                    </div>
+
+                    {/* Tagline */}
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                        Tagline / Subtitle
+                      </label>
+                      <input
+                        className="input-standard text-xs"
+                        placeholder="e.g. Innovate. Build. Deploy."
+                        value={newEvent.tagline}
+                        onChange={(e) => setNewEvent((p) => ({ ...p, tagline: e.target.value }))}
+                      />
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                        Event Description *
+                      </label>
+                      <textarea
+                        className="input-standard resize-none text-xs"
+                        rows={3}
+                        placeholder="Detailed schedule, eligibility, prizes, or refreshments info..."
+                        value={newEvent.description}
+                        onChange={(e) => setNewEvent((p) => ({ ...p, description: e.target.value }))}
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="btn-primary py-3 text-xs font-bold mt-1 flex items-center justify-center gap-2 cursor-pointer"
+                      disabled={submitting}
+                    >
+                      {submitting ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <>
+                          <Sparkles size={15} />
+                          <span>Publish Event to Live Feed</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                ) : (
+                  /* Post Creation Form */
+                  <form onSubmit={handleCreatePost} className="flex flex-col gap-3">
+                    <input
+                      className="input-standard text-xs"
+                      placeholder="Society or organization (e.g. CCS, Mudra)"
+                      value={newPost.society_name}
+                      onChange={(e) => setNewPost((p) => ({ ...p, society_name: e.target.value }))}
+                      required
+                    />
+
+                    <div className="relative">
+                      <select
+                        className="input-standard appearance-none pr-10 text-xs"
+                        value={newPost.category}
+                        onChange={(e) => setNewPost((p) => ({ ...p, category: e.target.value }))}
+                      >
+                        {CATEGORIES.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        size={14}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500"
+                      />
+                    </div>
+
+                    <input
+                      className="input-standard text-xs"
+                      placeholder="Post title"
+                      value={newPost.title}
+                      onChange={(e) => setNewPost((p) => ({ ...p, title: e.target.value }))}
+                      required
+                    />
+
+                    <textarea
+                      className="input-standard resize-none text-xs"
+                      rows={4}
+                      placeholder="What's happening on campus?"
+                      value={newPost.description}
+                      onChange={(e) => setNewPost((p) => ({ ...p, description: e.target.value }))}
+                      required
+                    />
+
+                    <button
+                      type="submit"
+                      className="btn-primary py-3 text-xs font-bold mt-1 flex items-center justify-center gap-2 cursor-pointer"
+                      disabled={submitting}
+                    >
+                      {submitting ? <Loader2 size={16} className="animate-spin" /> : 'Publish Post'}
+                    </button>
+                  </form>
+                )}
               </motion.div>
             </div>
           </>
@@ -363,3 +668,4 @@ export default function FeedView({
     </div>
   )
 }
+
