@@ -1,29 +1,42 @@
 # Node & Client Build
 node_modules/
-client/node_modules/
-client/dist/
+**/node_modules/
+code/node_modules/
+code/client/node_modules/
 dist/
+**/dist/
+code/dist/
+code/client/dist/
 dist-ssr/
 *.local
 
 # Python & Server
 __pycache__/
-server/__pycache__/
-server/routers/__pycache__/
+**/__pycache__/
+code/server/__pycache__/
+code/server/routers/__pycache__/
 *.py[cod]
 *$py.class
 *.db
 *.sqlite3
 server/campus_pulse.db
+code/server/campus_pulse.db
 .pytest_cache/
 venv/
 .venv/
 env/
 
+# Documentation build
+site/
+docs/site/
+
 # Environment variables
 .env
-client/.env
-server/.env
+.env.*
+!.env.example
+code/.env
+code/client/.env
+code/server/.env
 
 # Editor & OS
 .vscode/

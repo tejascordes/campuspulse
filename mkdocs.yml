@@ -1,0 +1,28 @@
+site_name: CampusPulse Documentation
+site_description: Thapar's social campus layer - UCS503P Software Engineering Project
+site_author: CampusPulse Team
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: indigo
+    accent: deep purple
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - search.highlight
+    - search.share
+
+nav:
+  - Home: index.md
+  - Project Proposal: project-proposal.md
+  - Architecture: architecture.md
+  - API Reference: api.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.details
