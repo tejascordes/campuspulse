@@ -1,28 +1,76 @@
 site_name: CampusPulse Documentation
-site_description: Thapar's social campus layer - UCS503P Software Engineering Project
+site_description: Thapar's social campus layer - UCS503P Software Engineering Lab Project
 site_author: CampusPulse Team
+repo_url: https://github.com/tejascordes/campuspulse
+repo_name: tejascordes/campuspulse
 
 theme:
   name: material
   palette:
-    scheme: slate
-    primary: indigo
-    accent: deep purple
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
   features:
     - navigation.tabs
     - navigation.sections
+    - navigation.top
     - search.highlight
     - search.share
+    - content.code.copy
 
 nav:
   - Home: index.md
-  - Project Proposal: project-proposal.md
-  - Architecture: architecture.md
-  - API Reference: api.md
+  - General Docs:
+      - Architecture: architecture.md
+      - API Reference: api.md
+      - Setup & Deployment: setup.md
+  - Project Proposal:
+      - Overview: project-proposal/README.md
+      - Software Bid: project-proposal/software-bid.md
+      - Project Overview: project-proposal/project-overview.md
+  - Journals:
+      - Overview: journals/README.md
+      - Week 01 - Ideation & Scope: journals/week-01.md
+      - Week 02 - Requirements & Feasibility: journals/week-02.md
+      - Week 03 - UI/UX & Design System: journals/week-03.md
+      - Week 04 - Frontend & Leaflet Map: journals/week-04.md
+      - Week 05 - Backend Architecture & DB: journals/week-05.md
+      - Week 06 - Bottom Sheet & State Sync: journals/week-06.md
+      - Week 07 - Mid-Sem Prototype & Verification: journals/week-07.md
+      - Week 08 - Privacy Model & Final Delivery: journals/week-08.md
+  - Prototype Stage Report:
+      - Overview: project-report-prototype-stage/README.md
+      - SRS: project-report-prototype-stage/srs.md
+      - User Stories: project-report-prototype-stage/user-stories.md
+      - Use-Case Diagrams: project-report-prototype-stage/use-case-diagrams.md
+      - DFD Levels 0/1/2: project-report-prototype-stage/dfd-levels.md
+  - Final Project Report:
+      - Overview: project-report-final/README.md
+      - UML Diagrams: project-report-final/uml-diagrams.md
+      - Implementation Details: project-report-final/implementation.md
+      - Testing & Verification: project-report-final/testing.md
 
 markdown_extensions:
   - admonition
-  - pymdownx.highlight
-  - pymdownx.superfences
-  - pymdownx.tabbed
   - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list

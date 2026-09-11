@@ -1,0 +1,50 @@
+name: CampusPulse CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build & Verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: code/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: code
+        run: npm ci
+
+      - name: Build Frontend Client
+        working-directory: code
+        run: npm run build
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python Dependencies & MkDocs
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r code/server/requirements.txt
+          pip install mkdocs mkdocs-material
+
+      - name: Verify Backend Modules
+        working-directory: code/server
+        run: python -c "import main, models, schemas, database; print('Backend modules verified')"
+
+      - name: Build Documentation (MkDocs)
+        run: mkdocs build --strict
