@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, Eye, EyeOff, Users, Shield, BarChart2, Calendar, Loader2, Check } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { LogOut, Eye, Users, Shield, Loader2, Check } from 'lucide-react'
+import { authApi } from '../api.js'
 
 const PRIVACY_OPTIONS = [
   {
@@ -41,12 +40,8 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
     setSaving(true)
     setSaved(false)
     try {
-      const res = await axios.patch(
-        `${API_URL}/api/auth/profile`,
-        { default_calendar_privacy: val },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      onUpdateUser(res.data)
+      const updated = await authApi.updateProfile({ default_calendar_privacy: val }, token)
+      onUpdateUser(updated)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (e) {

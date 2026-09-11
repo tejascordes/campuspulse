@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Calendar as CalendarIcon, Lock, Users, Globe, Check, Loader2 } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { eventsApi } from '../api.js'
 
 const PRIVACY_OPTIONS = [
   {
@@ -33,7 +32,7 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
   const handleSave = async () => {
     setSaving(true)
     try {
-      await axios.post(`${API_URL}/api/calendar/add`, {
+      await eventsApi.saveToCalendar({
         event_title: event.title,
         event_date: event.event_date,
         visibility: privacy,

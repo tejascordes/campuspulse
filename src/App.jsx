@@ -5,7 +5,8 @@ import MapView from './views/MapView.jsx'
 import ProfileView from './views/ProfileView.jsx'
 import LoginView from './views/LoginView.jsx'
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+import { API_URL, subscribeFallbackStatus, getIsFallbackActive } from './api.js'
+export { API_URL }
 
 export default function App() {
   const [tab, setTab] = useState('feed')
@@ -14,6 +15,15 @@ export default function App() {
     const u = localStorage.getItem('cp_user')
     return u ? JSON.parse(u) : null
   })
+  const [isDemoMode, setIsDemoMode] = useState(getIsFallbackActive())
+  const [hideDemoBanner, setHideDemoBanner] = useState(false)
+
+  useEffect(() => {
+    const unsubscribe = subscribeFallbackStatus((active) => {
+      setIsDemoMode(active)
+    })
+    return unsubscribe
+  }, [])
 
   const handleLogin = (tokenData) => {
     setToken(tokenData.access_token)
@@ -41,6 +51,27 @@ export default function App() {
 
   return (
     <div className="h-full flex flex-col bg-base text-zinc-100">
+      {isDemoMode && !hideDemoBanner && (
+        <div
+          className="px-3 py-1 text-[11px] flex items-center justify-between z-30 flex-shrink-0"
+          style={{
+            backgroundColor: '#18181b',
+            borderBottom: '1px solid #27272a',
+            color: '#a1a1aa',
+          }}
+        >
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Interactive Demo Mode (Offline Preview)</span>
+          </div>
+          <button
+            onClick={() => setHideDemoBanner(true)}
+            className="text-zinc-500 hover:text-zinc-300 text-xs px-1 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       <div className="flex-1 overflow-hidden relative">
         {tab === 'feed' && <FeedView token={token} user={user} />}
         {tab === 'map' && <MapView token={token} />}

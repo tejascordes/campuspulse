@@ -10,8 +10,7 @@ import {
   Layers,
   CalendarDays,
 } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { postsApi, eventsApi } from '../api.js'
 import FilterPills from '../components/FilterPills.jsx'
 import PostCard from '../components/PostCard.jsx'
 import EventCard from '../components/EventCard.jsx'
@@ -41,11 +40,11 @@ export default function FeedView({ token, user }) {
     try {
       const params = filter !== 'All' ? { category: filter } : {}
       if (feedMode === 'posts') {
-        const res = await axios.get(`${API_URL}/api/posts`, { params })
-        setPosts(res.data)
+        const data = await postsApi.getPosts(params)
+        setPosts(data)
       } else {
-        const res = await axios.get(`${API_URL}/api/events`, { params })
-        setEvents(res.data)
+        const data = await eventsApi.getEvents(params)
+        setEvents(data)
       }
     } catch (e) {
       console.error('Failed to fetch pulse data:', e)
@@ -62,7 +61,7 @@ export default function FeedView({ token, user }) {
     e.preventDefault()
     setSubmitting(true)
     try {
-      await axios.post(`${API_URL}/api/posts`, newPost)
+      await postsApi.createPost(newPost)
       setShowCreateModal(false)
       setNewPost({ society_name: '', category: 'Tech', title: '', description: '' })
       fetchData()

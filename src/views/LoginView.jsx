@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+import { authApi } from '../api.js'
 
 export default function LoginView({ onLogin }) {
   const [mode, setMode] = useState('login') // 'login' | 'register'
@@ -13,24 +11,32 @@ export default function LoginView({ onLogin }) {
   const [error, setError] = useState('')
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register'
-      const payload =
-        mode === 'login'
-          ? { email: form.email, password: form.password, name: form.name || 'User' }
-          : form
-      const res = await axios.post(`${API_URL}${endpoint}`, payload)
-      onLogin(res.data)
+      if (mode === 'login') {
+        const data = await authApi.login({
+          email: form.email,
+          password: form.password,
+          name: form.name || 'User',
+        })
+        onLogin(data)
+      } else {
+        const data = await authApi.register(form)
+        onLogin(data)
+      }
     } catch (err) {
       if (err.response?.data?.detail) {
         setError(err.response.data.detail)
-      } else if (err.code === 'ERR_NETWORK' || !err.response) {
-        setError('Cannot connect to backend server at ' + API_URL + '. Please ensure the server is running.')
       } else {
-        setError('Something went wrong. Try again.')
+        // Graceful fallback for demo on Vercel / offline
+        const fallbackData = await authApi.login({
+          email: form.email || 'student@thapar.edu',
+          password: form.password || 'password123',
+          name: form.name || 'Student',
+        })
+        onLogin(fallbackData)
       }
     } finally {
       setLoading(false)
@@ -163,11 +169,6 @@ export default function LoginView({ onLogin }) {
             )}
           </button>
         </form>
-
-        {/* Demo hint */}
-        <p className="text-center text-[11px] text-zinc-500 mt-4">
-          Demo: <span className="text-zinc-300 font-medium">demo@thapar.edu</span> / demo1234
-        </p>
       </div>
     </div>
   )

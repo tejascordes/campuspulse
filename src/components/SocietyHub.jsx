@@ -10,11 +10,8 @@ import {
   MapPin,
   Clock,
   Loader2,
-  Mail,
-  ExternalLink,
 } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { societiesApi, eventsApi, postsApi } from '../api.js'
 import EventCard from './EventCard.jsx'
 import PostCard from './PostCard.jsx'
 
@@ -30,14 +27,14 @@ export default function SocietyHub({ societyName, onClose }) {
     async function loadSocietyData() {
       setLoading(true)
       try {
-        const [socRes, evRes, postRes] = await Promise.all([
-          axios.get(`${API_URL}/api/societies/${societyName}`),
-          axios.get(`${API_URL}/api/events`, { params: { society_name: societyName } }),
-          axios.get(`${API_URL}/api/posts`, { params: { society_name: societyName } }),
+        const [socData, evData, postData] = await Promise.all([
+          societiesApi.getSociety(societyName),
+          eventsApi.getEvents({ society_name: societyName }),
+          postsApi.getPosts({ society_name: societyName }),
         ])
-        setSociety(socRes.data)
-        setEvents(evRes.data)
-        setPosts(postRes.data)
+        setSociety(socData)
+        setEvents(evData)
+        setPosts(postData)
       } catch (e) {
         console.error('Failed to load society hub data:', e)
       } finally {

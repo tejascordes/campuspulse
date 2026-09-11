@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronUp, MessageSquare, Clock } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { ChevronUp, MessageSquare } from 'lucide-react'
+import { postsApi } from '../api.js'
 
 function timeAgo(dateStr) {
   if (!dateStr) return ''
@@ -24,8 +23,8 @@ export default function PostCard({ post, onUpvote }) {
     if (voted || upvoting) return
     setUpvoting(true)
     try {
-      const res = await axios.post(`${API_URL}/api/posts/${post.id}/upvote`)
-      setUpvotes(res.data.upvotes)
+      const data = await postsApi.upvotePost(post.id)
+      setUpvotes(data.upvotes)
       setVoted(true)
     } catch {
       setUpvotes((u) => u + 1)

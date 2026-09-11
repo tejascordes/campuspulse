@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { Flame } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { societiesApi } from '../api.js'
 
 export default function StoriesRow({ onSocietyClick }) {
   const [societies, setSocieties] = useState([])
@@ -11,8 +9,8 @@ export default function StoriesRow({ onSocietyClick }) {
   useEffect(() => {
     async function fetchSocieties() {
       try {
-        const res = await axios.get(`${API_URL}/api/societies`)
-        setSocieties(res.data)
+        const data = await societiesApi.getSocieties()
+        setSocieties(data)
       } catch (e) {
         console.error('Failed to load societies for stories:', e)
       } finally {

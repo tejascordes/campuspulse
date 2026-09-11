@@ -9,8 +9,7 @@ import {
   UserPlus,
   CheckCircle2,
 } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { eventsApi } from '../api.js'
 import CalendarSaveModal from './CalendarSaveModal.jsx'
 import InviteModal from './InviteModal.jsx'
 
@@ -46,9 +45,9 @@ export default function EventCard({ event, onUpdate }) {
 
     try {
       if (prevRegistered) {
-        await axios.delete(`${API_URL}/api/events/${event.id}/register`)
+        await eventsApi.unregister(event.id)
       } else {
-        await axios.post(`${API_URL}/api/events/${event.id}/register`)
+        await eventsApi.register(event.id)
       }
       if (onUpdate) onUpdate()
     } catch (e) {

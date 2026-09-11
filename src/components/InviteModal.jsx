@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Send, UserPlus, Copy, Check, Loader2, Plus } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { eventsApi } from '../api.js'
 
 export default function InviteModal({ event, onClose }) {
   const [emails, setEmails] = useState(['ananya.s@thapar.edu', 'kabir.singh@thapar.edu'])
@@ -36,7 +35,7 @@ export default function InviteModal({ event, onClose }) {
     if (emails.length === 0) return
     setSending(true)
     try {
-      await axios.post(`${API_URL}/api/events/${event.id}/invite`, {
+      await eventsApi.sendInvite(event.id, {
         emails,
         message,
       })

@@ -2,10 +2,8 @@ import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, CircleMarker } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { motion } from 'framer-motion'
-import { Search, Layers, Loader2 } from 'lucide-react'
-import axios from 'axios'
-import { API_URL } from '../App.jsx'
+import { Search, Loader2 } from 'lucide-react'
+import { mapApi } from '../api.js'
 import BottomSheet from '../components/BottomSheet.jsx'
 
 // Fix Leaflet default icon in Vite
@@ -61,9 +59,9 @@ export default function MapView({ token }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    axios
-      .get(`${API_URL}/api/map/pins`)
-      .then((res) => setPins(res.data))
+    mapApi
+      .getPins()
+      .then((data) => setPins(data))
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
