@@ -1,16 +1,64 @@
-# React + Vite
+# CampusPulse 🚀
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+**Thapar's social campus layer** — Reddit-style event feed, interactive campus map, and 3-tier privacy calendar.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Frontend**: React + Vite + Tailwind CSS + Framer Motion + Leaflet
+- **Backend**: Python FastAPI + SQLite + SQLAlchemy (async)
+- **Design**: Dark Y2K Neon aesthetic
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. Backend
 
-## Expanding the Oxlint configuration
+```bash
+cd campus-pulse/server
+pip install -r requirements.txt
+uvicorn main:app --reload
+# → http://localhost:8000
+# → http://localhost:8000/docs  (Swagger UI)
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+### 2. Frontend
+
+```bash
+cd campus-pulse/client
+npm install
+npm run dev
+# → http://localhost:5173
+```
+
+### Demo Login
+- Email: `demo@thapar.edu`
+- Password: `demo1234`
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| 📰 **Feed** | Society events and friends' attending feed filtered by category |
+| 🔖 **Saved Events** | Bookmark events with one click and synchronize with profile view |
+| 🗺️ **Campus Map** | Full-screen Leaflet map with pulsing markers for campus locations |
+| 📍 **Bottom Sheet** | Apple Maps-style drag-to-dismiss card with ratings, description, and Directions |
+| 👤 **Profile** | User stats, Bookmarked events, and 3-tier calendar privacy settings |
+| 🔐 **Auth** | JWT-based login/register with bcrypt password hashing |
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Create new account |
+| POST | `/api/auth/login` | Login, returns JWT |
+| GET | `/api/events` | List campus events (filter: `?category=Tech`) |
+| POST | `/api/events/{id}/register` | Register/RSVP for event |
+| POST | `/api/events/{id}/invite` | Send invite to friends |
+| GET | `/api/map/pins` | All campus map pins |
+| GET | `/api/map/pins/{id}` | Single pin details |
+| POST | `/api/calendar/add` | Add calendar event |
+
+## Deployment
+
+- **Frontend** → Vercel (set root to `client/`, Vite auto-detected)
+- **Backend** → Render/Railway (start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`)
+- Set `VITE_API_URL` env var in Vercel to point to your deployed backend
