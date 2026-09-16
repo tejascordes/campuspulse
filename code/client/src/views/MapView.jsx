@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, CircleMarker } from 'react-leaflet'
+import { MapContainer, ImageOverlay, CircleMarker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Search, Loader2, Compass } from 'lucide-react'
+import { Search, Loader2, Compass, ZoomIn, ZoomOut } from 'lucide-react'
 import { mapApi } from '../api.js'
 import BottomSheet from '../components/BottomSheet.jsx'
 
@@ -14,11 +14,101 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-// Clean light Airbnb-style Voyager tile layer with CARTO API Key
-const CARTO_API_KEY = import.meta.env.VITE_CARTO_API_KEY || 'cb1_3gif_1_36cb4736549ba6b2eb8d936b'
-const LIGHT_TILE = `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+const MAP_WIDTH = 1024
+const MAP_HEIGHT = 559
+const MAP_BOUNDS = [[0, 0], [MAP_HEIGHT, MAP_WIDTH]]
 
 const CATEGORIES = ['Society Hub', 'Academic', 'Recreational', 'Food', 'Sports']
+
+function MapPanController({ selectedPin }) {
+  const map = useMap()
+  useEffect(() => {
+    if (selectedPin) {
+      map.flyTo([selectedPin.latitude, selectedPin.longitude], Math.max(map.getZoom(), 0.5), {
+        duration: 0.6,
+      })
+    }
+  }, [selectedPin, map])
+  return null
+}
+
+function MapControls({ bounds }) {
+  const map = useMap()
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 16,
+        right: 12,
+        zIndex: 30,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+      }}
+    >
+      <button
+        onClick={() => map.fitBounds(bounds)}
+        title="Reset map view to whole campus"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+          padding: '6px 12px',
+          borderRadius: '9999px',
+          fontSize: 12,
+          fontWeight: 600,
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #DDDDDD',
+          color: '#222222',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+        }}
+      >
+        <Compass size={14} style={{ color: '#FF385C' }} />
+        <span>Reset View</span>
+      </button>
+      <button
+        onClick={() => map.zoomIn()}
+        title="Zoom in"
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: '9999px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #DDDDDD',
+          color: '#222222',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <ZoomIn size={14} />
+      </button>
+      <button
+        onClick={() => map.zoomOut()}
+        title="Zoom out"
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: '9999px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #DDDDDD',
+          color: '#222222',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <ZoomOut size={14} />
+      </button>
+    </div>
+  )
+}
 
 function PinMarker({ pin, isSelected, onClick }) {
   return (
@@ -26,25 +116,25 @@ function PinMarker({ pin, isSelected, onClick }) {
       {/* Outer halo / drop ring */}
       <CircleMarker
         center={[pin.latitude, pin.longitude]}
-        radius={isSelected ? 20 : 13}
+        radius={isSelected ? 22 : 14}
         pathOptions={{
-          color: isSelected ? '#FF385C' : '#222222',
+          color: isSelected ? '#FF385C' : '#1E293B',
           fillColor: isSelected ? '#FF385C' : '#FFFFFF',
-          fillOpacity: isSelected ? 0.22 : 0.95,
-          weight: isSelected ? 2.5 : 1.5,
-          opacity: 0.9,
+          fillOpacity: isSelected ? 0.35 : 0.95,
+          weight: isSelected ? 3 : 2,
+          opacity: 0.95,
         }}
         eventHandlers={{ click: () => onClick(pin) }}
       />
-      {/* Inner vibrant coral / dark center */}
+      {/* Inner vibrant coral center */}
       <CircleMarker
         center={[pin.latitude, pin.longitude]}
-        radius={isSelected ? 8 : 5}
+        radius={isSelected ? 9 : 6}
         pathOptions={{
           color: '#FFFFFF',
-          fillColor: isSelected ? '#FF385C' : '#222222',
+          fillColor: isSelected ? '#FF385C' : '#FF385C',
           fillOpacity: 1,
-          weight: 1.8,
+          weight: 2,
           opacity: 1,
         }}
         eventHandlers={{ click: () => onClick(pin) }}
@@ -58,7 +148,6 @@ export default function MapView({ token: _token }) {
   const [selectedPin, setSelectedPin] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
-  const [rotation, setRotation] = useState(-80)
 
   useEffect(() => {
     mapApi
@@ -99,51 +188,9 @@ export default function MapView({ token: _token }) {
             position: 'relative',
             overflow: 'hidden',
             borderColor: '#DDDDDD',
+            backgroundColor: '#9EB5C8',
           }}
         >
-          {/* Map Orientation / Rotation Controls */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 16,
-              right: 12,
-              zIndex: 30,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <button
-              onClick={() => setRotation((prev) => (prev === 0 ? -80 : 0))}
-              title={rotation === 0 ? 'Rotate map so Nabha Road aligns to the right side' : 'Reset map to True North'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '6px 12px',
-                borderRadius: '9999px',
-                fontSize: 12,
-                fontWeight: 600,
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #DDDDDD',
-                color: '#222222',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <Compass
-                size={15}
-                style={{
-                  color: '#FF385C',
-                  transform: `rotate(${-rotation}deg)`,
-                  transition: 'transform 0.4s ease',
-                }}
-              />
-              <span>{rotation !== 0 ? 'Nabha Rd (Right)' : 'North Up'}</span>
-            </button>
-          </div>
-
           {/* Mobile floating search pill */}
           <div
             style={{
@@ -223,40 +270,34 @@ export default function MapView({ token: _token }) {
             ))}
           </div>
 
-          {/* Rotated Leaflet Map Container */}
+          {/* Illustrated FROSH Campus Map with Simple CRS */}
           {!loading && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '-50%',
-                left: '-50%',
-                width: '200%',
-                height: '200%',
-                transform: `rotate(${rotation}deg)`,
-                transformOrigin: '50% 50%',
-                transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-              }}
+            <MapContainer
+              crs={L.CRS.Simple}
+              bounds={MAP_BOUNDS}
+              maxBounds={MAP_BOUNDS}
+              maxBoundsViscosity={0.9}
+              minZoom={-1}
+              maxZoom={2}
+              zoomSnap={0.2}
+              style={{ height: '100%', width: '100%', backgroundColor: '#9EB5C8' }}
+              zoomControl={false}
             >
-              <MapContainer
-                center={[30.3562, 76.3648]}
-                zoom={16}
-                style={{ height: '100%', width: '100%' }}
-                zoomControl={false}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                  url={LIGHT_TILE}
+              <ImageOverlay
+                url="/frosh_campus_map.png"
+                bounds={MAP_BOUNDS}
+              />
+              <MapPanController selectedPin={selectedPin} />
+              <MapControls bounds={MAP_BOUNDS} />
+              {filteredPins.map((pin) => (
+                <PinMarker
+                  key={pin.id}
+                  pin={pin}
+                  isSelected={selectedPin?.id === pin.id}
+                  onClick={handlePinClick}
                 />
-                {filteredPins.map((pin) => (
-                  <PinMarker
-                    key={pin.id}
-                    pin={pin}
-                    isSelected={selectedPin?.id === pin.id}
-                    onClick={handlePinClick}
-                  />
-                ))}
-              </MapContainer>
-            </div>
+              ))}
+            </MapContainer>
           )}
 
           {loading && (
