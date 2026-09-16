@@ -1,14 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
   Plus,
   Loader2,
   X,
-  ChevronDown,
   Layers,
   CalendarDays,
   Bell,
+  UploadCloud,
+  Check,
+  ShieldCheck,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { postsApi, eventsApi } from '../api.js'
 import FilterPills from '../components/FilterPills.jsx'
@@ -17,9 +20,20 @@ import EventCard from '../components/EventCard.jsx'
 import StoriesRow from '../components/StoriesRow.jsx'
 import SocietyHub from '../components/SocietyHub.jsx'
 
-const CATEGORIES = ['Tech', 'Non-Tech', 'Hackathons', 'Prizes Only', 'Refreshments']
+const AVAILABLE_TAGS = [
+  'Tech',
+  'Non-Tech',
+  'Hackathon',
+  'Prize Pool',
+  'Certificate',
+  'Refreshments',
+  'Overnight',
+  'Cultural',
+  'Workshop',
+  'Free Entry',
+]
 
-export default function FeedView({ token: _token, user: _user }) {
+export default function FeedView({ token: _token, user }) {
   const [feedMode, setFeedMode] = useState('posts') // 'posts' | 'events'
   const [posts, setPosts] = useState([])
   const [events, setEvents] = useState([])
@@ -27,13 +41,29 @@ export default function FeedView({ token: _token, user: _user }) {
   const [loading, setLoading] = useState(true)
   const [selectedSociety, setSelectedSociety] = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+
+  // Society identity from logged in user account
+  const currentSocietyName = user?.society_name || user?.name || 'CCS'
+  const currentSocietyLogo = user?.logo_url || null
+
+  // Post form state
   const [newPost, setNewPost] = useState({
-    society_name: '',
-    category: 'Tech',
     title: '',
     description: '',
+    categories: ['Tech'],
+    logo_url: currentSocietyLogo || '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [logoPreview, setLogoPreview] = useState(currentSocietyLogo || '')
+  const fileInputRef = useRef(null)
+
+  // Keep logo preview in sync if user changes
+  useEffect(() => {
+    if (user?.logo_url) {
+      setLogoPreview(user.logo_url)
+      setNewPost((p) => ({ ...p, logo_url: user.logo_url }))
+    }
+  }, [user])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -57,13 +87,56 @@ export default function FeedView({ token: _token, user: _user }) {
     fetchData()
   }, [fetchData])
 
+  const handleToggleTag = (tag) => {
+    setNewPost((prev) => {
+      const exists = prev.categories.includes(tag)
+      let updated
+      if (exists) {
+        // keep at least 1 tag
+        updated = prev.categories.length > 1 ? prev.categories.filter((t) => t !== tag) : prev.categories
+      } else {
+        updated = [...prev.categories, tag]
+      }
+      return { ...prev, categories: updated }
+    })
+  }
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64 = event.target?.result
+      setLogoPreview(base64)
+      setNewPost((p) => ({ ...p, logo_url: base64 }))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveLogo = () => {
+    setLogoPreview('')
+    setNewPost((p) => ({ ...p, logo_url: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const handleCreatePost = async (e) => {
     e.preventDefault()
+    if (!newPost.title.trim() || !newPost.description.trim()) return
     setSubmitting(true)
     try {
-      await postsApi.createPost(newPost)
+      await postsApi.createPost({
+        ...newPost,
+        society_name: currentSocietyName,
+        category: newPost.categories[0] || 'Tech',
+        logo_url: logoPreview || null,
+      })
       setShowCreateModal(false)
-      setNewPost({ society_name: '', category: 'Tech', title: '', description: '' })
+      setNewPost({
+        title: '',
+        description: '',
+        categories: ['Tech'],
+        logo_url: logoPreview || '',
+      })
       fetchData()
     } catch (e) {
       console.error('Failed to create post:', e)
@@ -71,6 +144,8 @@ export default function FeedView({ token: _token, user: _user }) {
       setSubmitting(false)
     }
   }
+
+  const societyInitial = currentSocietyName.charAt(0).toUpperCase()
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden relative bg-white" style={{ backgroundColor: '#FFFFFF' }}>
@@ -299,7 +374,7 @@ export default function FeedView({ token: _token, user: _user }) {
                 Create Pulse
               </h3>
               <p style={{ fontSize: 12, color: '#717171', margin: '0 0 14px' }}>
-                Broadcast announcements or society updates.
+                Post under your verified society account.
               </p>
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -444,12 +519,12 @@ export default function FeedView({ token: _token, user: _user }) {
               <motion.div
                 style={{
                   width: '100%',
-                  maxWidth: 480,
-                  padding: '20px 20px 28px',
+                  maxWidth: 500,
+                  padding: '24px',
                   borderRadius: '20px 20px 0 0',
                   pointerEvents: 'auto',
                   backgroundColor: '#FFFFFF',
-                  maxHeight: '85vh',
+                  maxHeight: '90vh',
                   overflowY: 'auto',
                   boxShadow: '0 -4px 40px rgba(0,0,0,0.14)',
                   border: '1px solid #DDDDDD',
@@ -461,10 +536,15 @@ export default function FeedView({ token: _token, user: _user }) {
                 transition={{ type: 'spring', stiffness: 450, damping: 35 }}
               >
                 <div className="drag-handle md:hidden" />
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.02em' }}>
-                    Create Post
-                  </h2>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                  <div>
+                    <h2 style={{ fontSize: 18, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.02em' }}>
+                      Create Post
+                    </h2>
+                    <p style={{ fontSize: 12, color: '#717171', margin: '2px 0 0' }}>
+                      Publish an official announcement
+                    </p>
+                  </div>
                   <button
                     onClick={() => setShowCreateModal(false)}
                     style={{
@@ -484,56 +564,223 @@ export default function FeedView({ token: _token, user: _user }) {
                   </button>
                 </div>
 
-                <form onSubmit={handleCreatePost} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <input
-                    className="input-standard"
-                    placeholder="Society name (e.g. CCS, Mudra)"
-                    value={newPost.society_name}
-                    onChange={(e) => setNewPost((p) => ({ ...p, society_name: e.target.value }))}
-                    required
-                  />
-
-                  <div style={{ position: 'relative' }}>
-                    <select
-                      className="input-standard appearance-none"
-                      style={{ paddingRight: 40 }}
-                      value={newPost.category}
-                      onChange={(e) => setNewPost((p) => ({ ...p, category: e.target.value }))}
+                {/* 1. Verified Society Identity Banner (Locked Account Name) */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 14px',
+                    borderRadius: 12,
+                    backgroundColor: '#F7F7F7',
+                    border: '1px solid #DDDDDD',
+                    marginBottom: 16,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div
+                      style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: '9999px',
+                        backgroundColor: '#FFFFFF',
+                        border: '1.5px solid #DDDDDD',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: 16,
+                        color: '#FF385C',
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                      }}
                     >
-                      {CATEGORIES.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={14}
-                      style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#717171' }}
+                      {logoPreview ? (
+                        <img
+                          src={logoPreview}
+                          alt="Society Logo"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <span>{societyInitial}</span>
+                      )}
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: '#222222' }}>
+                          {currentSocietyName}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            backgroundColor: '#EDFAF4',
+                            color: '#10B981',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 3,
+                          }}
+                        >
+                          <ShieldCheck size={11} /> Verified Society
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
+                        Locked to your official account
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Logo Upload Trigger */}
+                  <div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleLogoUpload}
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '9999px',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #DDDDDD',
+                        color: '#222222',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <UploadCloud size={13} />
+                      <span>{logoPreview ? 'Change Logo' : 'Upload Logo'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Logo Preview Indicator if uploaded */}
+                {logoPreview && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #DDDDDD',
+                      marginBottom: 16,
+                      fontSize: 11,
+                      color: '#717171',
+                    }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <ImageIcon size={13} style={{ color: '#10B981' }} /> Custom society logo attached
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveLogo}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#FF385C',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: 11,
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+
+                <form onSubmit={handleCreatePost} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {/* 2. Multi-Select Tags */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: '#222222' }}>
+                        Select Tags (Multiple)
+                      </label>
+                      <span style={{ fontSize: 11, color: '#717171', fontWeight: 500 }}>
+                        {newPost.categories.length} selected
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {AVAILABLE_TAGS.map((tag) => {
+                        const isSelected = newPost.categories.includes(tag)
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => handleToggleTag(tag)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '9999px',
+                              fontSize: 12,
+                              fontWeight: isSelected ? 700 : 500,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              backgroundColor: isSelected ? '#000000' : '#FFFFFF',
+                              color: isSelected ? '#FFFFFF' : '#222222',
+                              border: isSelected ? '1px solid #000000' : '1px solid #DDDDDD',
+                              boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.15)' : 'none',
+                            }}
+                          >
+                            {isSelected && <Check size={11} strokeWidth={3} />}
+                            <span>{tag}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 3. Post Title */}
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
+                      Post Title
+                    </label>
+                    <input
+                      className="input-standard"
+                      placeholder="e.g. HackThapar 2025 — Registrations Open"
+                      value={newPost.title}
+                      onChange={(e) => setNewPost((p) => ({ ...p, title: e.target.value }))}
+                      required
                     />
                   </div>
 
-                  <input
-                    className="input-standard"
-                    placeholder="Post title"
-                    value={newPost.title}
-                    onChange={(e) => setNewPost((p) => ({ ...p, title: e.target.value }))}
-                    required
-                  />
+                  {/* 4. Description */}
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
+                      Announcement Details
+                    </label>
+                    <textarea
+                      className="input-standard resize-none"
+                      rows={4}
+                      placeholder="Share event dates, registration links, prize pools, or venue details..."
+                      value={newPost.description}
+                      onChange={(e) => setNewPost((p) => ({ ...p, description: e.target.value }))}
+                      required
+                    />
+                  </div>
 
-                  <textarea
-                    className="input-standard resize-none"
-                    rows={4}
-                    placeholder="What's happening on campus?"
-                    value={newPost.description}
-                    onChange={(e) => setNewPost((p) => ({ ...p, description: e.target.value }))}
-                    required
-                  />
-
+                  {/* Submit Button */}
                   <button
                     type="submit"
                     className="btn-primary"
                     style={{ padding: '14px', fontSize: 14, marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     disabled={submitting}
                   >
-                    {submitting ? <Loader2 size={16} className="animate-spin" /> : 'Publish Post'}
+                    {submitting ? <Loader2 size={16} className="animate-spin" /> : 'Publish Announcement'}
                   </button>
                 </form>
               </motion.div>

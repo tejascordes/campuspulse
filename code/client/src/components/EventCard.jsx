@@ -24,15 +24,7 @@ function getHeroClass(category = '') {
   return 'hero-gradient-default'
 }
 
-function getBadgeClass(category = '') {
-  const c = category.toLowerCase()
-  if (c.includes('tech') && !c.includes('non')) return 'category-badge category-badge-tech'
-  if (c.includes('non')) return 'category-badge category-badge-nontech'
-  if (c.includes('hack')) return 'category-badge category-badge-hackathon'
-  if (c.includes('prize')) return 'category-badge category-badge-prizes'
-  if (c.includes('refresh')) return 'category-badge category-badge-refreshments'
-  return 'category-badge category-badge-default'
-}
+import { getBadgeClass } from './PostCard.jsx'
 
 export default function EventCard({ event, onUpdate }) {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -132,12 +124,18 @@ export default function EventCard({ event, onUpdate }) {
 
         {/* Card body */}
         <div style={{ padding: '14px 14px 14px', backgroundColor: '#FFFFFF' }}>
-          {/* Society + Category badge */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          {/* Society + Category badges */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {event.society_name}
             </span>
-            <span className={badgeClass}>{event.category}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+              {(Array.isArray(event.categories) && event.categories.length > 0 ? event.categories : [event.category || 'Tech']).map((tag) => (
+                <span key={tag} className={getBadgeClass(tag)}>
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
 
           {/* Event title */}

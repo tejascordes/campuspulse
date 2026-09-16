@@ -23,14 +23,19 @@ function getHeroClass(category = '') {
   return 'hero-gradient-default'
 }
 
-/** Maps a category to a badge class */
-function getBadgeClass(category = '') {
-  const c = category.toLowerCase()
+/** Maps a category tag to a badge class */
+export function getBadgeClass(tag = '') {
+  const c = tag.toLowerCase()
   if (c.includes('tech') && !c.includes('non')) return 'category-badge category-badge-tech'
   if (c.includes('non')) return 'category-badge category-badge-nontech'
   if (c.includes('hack')) return 'category-badge category-badge-hackathon'
   if (c.includes('prize')) return 'category-badge category-badge-prizes'
+  if (c.includes('cert')) return 'category-badge category-badge-certificate'
   if (c.includes('refresh')) return 'category-badge category-badge-refreshments'
+  if (c.includes('overnight')) return 'category-badge category-badge-overnight'
+  if (c.includes('cultur')) return 'category-badge category-badge-cultural'
+  if (c.includes('work')) return 'category-badge category-badge-workshop'
+  if (c.includes('free')) return 'category-badge category-badge-free'
   return 'category-badge category-badge-default'
 }
 
@@ -56,8 +61,13 @@ export default function PostCard({ post }) {
   }
 
   const societyInitial = (post.society_name || 'C').charAt(0).toUpperCase()
-  const heroClass = getHeroClass(post.category)
-  const badgeClass = getBadgeClass(post.category)
+  const primaryCategory = Array.isArray(post.categories) && post.categories.length > 0 ? post.categories[0] : (post.category || 'Tech')
+  const heroClass = getHeroClass(primaryCategory)
+
+  // Normalize all category tags
+  const tags = Array.isArray(post.categories) && post.categories.length > 0
+    ? post.categories
+    : (post.category ? [post.category] : ['Tech'])
 
   return (
     <div
@@ -81,36 +91,47 @@ export default function PostCard({ post }) {
           position: 'relative',
         }}
       >
-        {/* Society avatar overlaid on banner */}
+        {/* Society avatar or uploaded logo overlaid on banner */}
         <div
           style={{
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             borderRadius: '9999px',
-            backgroundColor: 'rgba(255,255,255,0.25)',
-            backdropFilter: 'blur(6px)',
-            border: '2px solid rgba(255,255,255,0.7)',
+            backgroundColor: '#FFFFFF',
+            border: '2.5px solid #FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 15,
+            fontSize: 16,
             fontWeight: 800,
-            color: '#FFFFFF',
+            color: '#FF385C',
             flexShrink: 0,
             position: 'absolute',
-            bottom: -16,
+            bottom: -18,
             left: 14,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
+            overflow: 'hidden',
           }}
         >
-          {societyInitial}
+          {post.logo_url ? (
+            <img
+              src={post.logo_url}
+              alt={post.society_name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+          ) : (
+            <span>{societyInitial}</span>
+          )}
         </div>
       </div>
 
       {/* Card body */}
       <div style={{ padding: '24px 14px 14px', backgroundColor: '#FFFFFF' }}>
-        {/* Header: Society + time + category badge */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        {/* Header: Society + time + category badge(s) */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: '#222222' }}>
               {post.society_name}
@@ -120,7 +141,15 @@ export default function PostCard({ post }) {
               {timeAgo(post.created_at)}
             </span>
           </div>
-          <span className={badgeClass}>{post.category}</span>
+
+          {/* Multiple Tag Badges */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+            {tags.map((tag) => (
+              <span key={tag} className={getBadgeClass(tag)}>
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Title & Description */}

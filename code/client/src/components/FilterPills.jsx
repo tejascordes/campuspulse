@@ -1,10 +1,15 @@
-const FILTERS = [
+export const AVAILABLE_TAGS = [
   'All',
   'Tech',
   'Non-Tech',
-  'Hackathons',
-  'Prizes Only',
+  'Hackathon',
+  'Prize Pool',
+  'Certificate',
   'Refreshments',
+  'Overnight',
+  'Cultural',
+  'Workshop',
+  'Free Entry',
 ]
 
 export default function FilterPills({ active, onChange }) {
@@ -13,7 +18,7 @@ export default function FilterPills({ active, onChange }) {
       className="flex gap-2 overflow-x-auto py-2 no-scrollbar bg-white"
       style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
     >
-      {FILTERS.map((cat) => {
+      {AVAILABLE_TAGS.map((cat) => {
         const isActive = active === cat
         return (
           <button

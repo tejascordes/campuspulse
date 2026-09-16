@@ -245,6 +245,7 @@ const SEED_POSTS = [
     id: 1,
     society_name: "CCS",
     category: "Tech",
+    categories: ["Tech", "Hackathon", "Prize Pool", "Certificate"],
     title: "HackThapar 2025 — Registration Open 🚀",
     description:
       "India's biggest 36-hour hackathon is back! Team size 2-4. Prizes worth ₹5L+ across 6 tracks. Cloud, AI/ML, Web3, and more. Register by Sep 20th.",
@@ -256,6 +257,7 @@ const SEED_POSTS = [
     id: 2,
     society_name: "Mudra",
     category: "Non-Tech",
+    categories: ["Non-Tech", "Cultural", "Free Entry"],
     title: "Battle of Bands this Saturday 🎸",
     description:
       "Mudra presents Battle of Bands — 8 bands competing for the trophy. Venue: Open Air Theatre. Starts 6 PM. Entry free for all Thapar students.",
@@ -267,6 +269,7 @@ const SEED_POSTS = [
     id: 3,
     society_name: "Mess Committee",
     category: "Refreshments",
+    categories: ["Refreshments", "Free Entry"],
     title: "Free Special Biryani & Dessert Day — All Hostels",
     description:
       "To celebrate Thapar's Foundation Day, the mess committee is serving unlimited biryani & gulab jamun at all hostel dining halls. Lunch only (12:30–2 PM). No coupon needed.",
@@ -277,7 +280,8 @@ const SEED_POSTS = [
   {
     id: 4,
     society_name: "Trident",
-    category: "Prizes Only",
+    category: "Prize Pool",
+    categories: ["Tech", "Prize Pool", "Overnight"],
     title: "₹25,000 Prize — Startup Idea Competition",
     description:
       "Trident and EDC jointly present the Annual Startup Idea Pitch. Top 3 teams win seed funding + mentorship from industry experts. Submit your deck by Monday.",
@@ -288,7 +292,8 @@ const SEED_POSTS = [
   {
     id: 5,
     society_name: "FAP",
-    category: "Hackathons",
+    category: "Hackathon",
+    categories: ["Hackathon", "Non-Tech", "Workshop"],
     title: "SIH Internal Hackathon — Problem Statements Released",
     description:
       "Smart India Hackathon internal round problem statements are live. 48 hours. 3 domains: Agriculture, Healthcare, Smart Cities. Teams of 6.",
@@ -300,6 +305,7 @@ const SEED_POSTS = [
     id: 6,
     society_name: "Literary Club",
     category: "Non-Tech",
+    categories: ["Non-Tech", "Cultural", "Free Entry"],
     title: "Annual Poetry Slam — Open Mic Night",
     description:
       "Express yourself at TU's first open mic of the semester. Any language. Any genre. 3 minutes per performer. Venue: A-Block Lawn. 7 PM Friday.",
@@ -311,6 +317,7 @@ const SEED_POSTS = [
     id: 7,
     society_name: "E-Cell",
     category: "Tech",
+    categories: ["Tech", "Certificate", "Workshop"],
     title: "Full-Stack Dev Bootcamp — 5 Days, Free Certification",
     description:
       "E-Cell is hosting a 5-day intensive MERN stack bootcamp for beginners. Completely free. Certificate on completion. Register on the portal before seats fill up.",
@@ -480,10 +487,13 @@ const SEED_FRIENDS = [
 
 const DEFAULT_USER = {
   id: 1,
-  name: "Demo Student",
-  email: "demo@thapar.edu",
+  name: "CCS (Computer Club Society)",
+  society_name: "CCS",
+  account_type: "society",
+  logo_url: null,
+  email: "ccs@thapar.edu",
   default_calendar_privacy: "CLOSE_FRIENDS",
-  bio: "CSE '26 | Hackathon enthusiast | Coffee addict",
+  bio: "Official Computer Club Society | HackThapar Organizers",
 }
 
 class MockStore {
@@ -537,7 +547,13 @@ class MockStore {
   getPosts(params = {}) {
     let list = [...this.posts]
     if (params.category && params.category !== "All") {
-      list = list.filter((p) => p.category === params.category)
+      const target = params.category.toLowerCase()
+      list = list.filter((p) => {
+        if (Array.isArray(p.categories)) {
+          return p.categories.some((c) => c.toLowerCase() === target)
+        }
+        return (p.category || "").toLowerCase() === target
+      })
     }
     if (params.society_name) {
       list = list.filter((p) => p.society_name.toLowerCase() === params.society_name.toLowerCase())
@@ -546,10 +562,16 @@ class MockStore {
   }
 
   createPost(data) {
+    const rawCategories = Array.isArray(data.categories) && data.categories.length > 0
+      ? data.categories
+      : (data.category ? [data.category] : ["Tech"])
+    
     const newPost = {
       id: Date.now(),
-      society_name: data.society_name || "Campus Community",
-      category: data.category || "Tech",
+      society_name: data.society_name || this.user?.society_name || this.user?.name || "Campus Society",
+      categories: rawCategories,
+      category: rawCategories[0],
+      logo_url: data.logo_url || this.user?.logo_url || null,
       title: data.title,
       description: data.description,
       upvotes: 1,
@@ -622,11 +644,17 @@ class MockStore {
     return this.pins
   }
 
-  login(email, password, name) {
+  login(email, password, name, account_type, society_name, logo_url) {
+    const isSociety = account_type === "society" || email?.includes("society") || (society_name && society_name.trim().length > 0)
+    const socName = society_name || (isSociety ? (name || "Official Society") : null)
+    
     const u = {
       ...this.user,
-      email: email || "demo@thapar.edu",
-      name: name || (email ? email.split("@")[0] : "Demo Student"),
+      email: email || "society@thapar.edu",
+      name: name || (socName ? `${socName} Official` : (email ? email.split("@")[0] : "Campus User")),
+      account_type: isSociety ? "society" : "student",
+      society_name: socName || this.user?.society_name || "CCS",
+      logo_url: logo_url || this.user?.logo_url || null,
     }
     this.user = u
     this.persist()
@@ -637,13 +665,19 @@ class MockStore {
     }
   }
 
-  register(name, email) {
+  register(name, email, account_type, society_name, logo_url) {
+    const isSociety = account_type === "society" || Boolean(society_name)
+    const socName = society_name || (isSociety ? name : null)
+
     const u = {
       id: Date.now(),
-      name: name || "Demo Student",
-      email: email || "demo@thapar.edu",
+      name: name || (socName ? `${socName} Official` : "Campus User"),
+      email: email || "society@thapar.edu",
+      account_type: isSociety ? "society" : "student",
+      society_name: socName || "CCS",
+      logo_url: logo_url || null,
       default_calendar_privacy: "CLOSE_FRIENDS",
-      bio: "Thapar Institute Student",
+      bio: isSociety ? `Official ${socName || name} Society Account` : "Thapar Institute Student",
     }
     this.user = u
     this.persist()

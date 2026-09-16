@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, Eye, Users, Shield, Loader2, Check } from 'lucide-react'
+import { LogOut, Eye, Users, Shield, Loader2, Check, UploadCloud, ShieldCheck } from 'lucide-react'
 import { authApi } from '../api.js'
 
 const PRIVACY_OPTIONS = [
@@ -25,15 +25,19 @@ const PRIVACY_OPTIONS = [
 ]
 
 const STAT_CARDS = [
-  { label: 'Posts', value: '12' },
+  { label: 'Posts', value: '14' },
   { label: 'Upvotes', value: '847' },
-  { label: 'Events Saved', value: '6' },
+  { label: 'Followers', value: '2.8k' },
 ]
 
 export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
   const [privacy, setPrivacy] = useState(user?.default_calendar_privacy || 'NO_ONE')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [societyName, setSocietyName] = useState(user?.society_name || 'CCS')
+  const [bio, setBio] = useState(user?.bio || 'Official Student Society at Thapar')
+  const [logoUrl, setLogoUrl] = useState(user?.logo_url || '')
+  const fileInputRef = useRef(null)
 
   const handlePrivacyChange = async (val) => {
     setPrivacy(val)
@@ -51,13 +55,44 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
     }
   }
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      const base64 = event.target?.result
+      setLogoUrl(base64)
+      try {
+        const updated = await authApi.updateProfile({ logo_url: base64 }, token)
+        onUpdateUser(updated)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      } catch (err) {
+        console.error('Failed to save logo:', err)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleSaveProfileInfo = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const updated = await authApi.updateProfile({ society_name: societyName, bio, logo_url: logoUrl }, token)
+      onUpdateUser(updated)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (err) {
+      console.error('Failed to update profile info:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const initials =
-    user?.name
-      ?.split(' ')
-      .map((n) => n[0])
-      .join('')
+    (user?.society_name || user?.name || 'CCS')
+      .slice(0, 2)
       .toUpperCase()
-      .slice(0, 2) || 'TU'
 
   return (
     <div
@@ -111,41 +146,100 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
               backgroundColor: '#FFFFFF',
             }}
           >
-            {/* Avatar with single coral ring */}
-            <div
-              style={{
-                width: 60,
-                height: 60,
-                borderRadius: '9999px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 18,
-                fontWeight: 800,
-                color: '#FF385C',
-                flexShrink: 0,
-                backgroundColor: '#FFFFFF',
-                border: '2px solid #FF385C',
-                letterSpacing: '-0.01em',
-              }}
-            >
-              {initials}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h2
+            {/* Avatar with single coral ring or uploaded logo */}
+            <div style={{ position: 'relative' }}>
+              <div
                 style={{
-                  fontSize: 16,
+                  width: 64,
+                  height: 64,
+                  borderRadius: '9999px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 18,
                   fontWeight: 800,
-                  color: '#222222',
-                  margin: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  color: '#FF385C',
+                  flexShrink: 0,
+                  backgroundColor: '#FFFFFF',
+                  border: '2.5px solid #FF385C',
                   letterSpacing: '-0.01em',
+                  overflow: 'hidden',
                 }}
               >
-                {user?.name}
-              </h2>
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <span>{initials}</span>
+                )}
+              </div>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleLogoUpload}
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Change Society Logo"
+                style={{
+                  position: 'absolute',
+                  bottom: -4,
+                  right: -4,
+                  width: 24,
+                  height: 24,
+                  borderRadius: '9999px',
+                  backgroundColor: '#000000',
+                  color: '#FFFFFF',
+                  border: '2px solid #FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <UploadCloud size={12} />
+              </button>
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <h2
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 800,
+                    color: '#222222',
+                    margin: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {user?.society_name || user?.name || 'CCS'}
+                </h2>
+                <span
+                  style={{
+                    fontSize: 10,
+                    padding: '1px 5px',
+                    borderRadius: 4,
+                    backgroundColor: '#EDFAF4',
+                    color: '#10B981',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 3,
+                  }}
+                >
+                  <ShieldCheck size={11} /> Verified
+                </span>
+              </div>
               <p
                 style={{
                   fontSize: 12,
@@ -158,11 +252,9 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
               >
                 {user?.email}
               </p>
-              {user?.bio && (
-                <p style={{ fontSize: 12, color: '#222222', marginTop: 6, lineHeight: 1.5 }}>
-                  {user.bio}
-                </p>
-              )}
+              <p style={{ fontSize: 12, color: '#222222', marginTop: 4, lineHeight: 1.4 }}>
+                {user?.bio || bio}
+              </p>
             </div>
           </div>
 
@@ -203,8 +295,70 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
           </div>
         </div>
 
-        {/* Right Column: Privacy Settings */}
-        <div className="md:col-span-7">
+        {/* Right Column: Profile & Privacy Settings */}
+        <div className="md:col-span-7" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Society Details Form */}
+          <div
+            className="surface-card"
+            style={{ padding: 20, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.01em' }}>
+                  Society Account Details
+                </h3>
+                <p style={{ fontSize: 12, color: '#717171', margin: '3px 0 0' }}>
+                  Update your official society brand &amp; bio
+                </p>
+              </div>
+              {saved && (
+                <span style={{ fontSize: 12, color: '#10B981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Check size={14} /> Saved
+                </span>
+              )}
+            </div>
+
+            <form onSubmit={handleSaveProfileInfo} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 4 }}>
+                  Official Society Name
+                </label>
+                <input
+                  className="input-standard"
+                  value={societyName}
+                  onChange={(e) => setSocietyName(e.target.value)}
+                  placeholder="e.g. CCS, Mudra, Trident"
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 4 }}>
+                  Society Tagline &amp; Bio
+                </label>
+                <textarea
+                  className="input-standard resize-none"
+                  rows={3}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Describe your student chapter or club..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ padding: '10px 20px', fontSize: 13 }}
+                  disabled={saving}
+                >
+                  {saving ? <Loader2 size={14} className="animate-spin" /> : 'Save Society Info'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Privacy Settings */}
           <div
             className="surface-card"
             style={{ padding: 20, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}
@@ -218,27 +372,6 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                   Control who sees events you add to schedule
                 </p>
               </div>
-              <AnimatePresence>
-                {saving && <Loader2 size={15} className="animate-spin" style={{ color: '#FF385C' }} />}
-                {saved && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: '9999px',
-                      backgroundColor: '#EDFAF4',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Check size={14} style={{ color: '#10B981' }} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -264,7 +397,6 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      {/* Icon circle */}
                       <div
                         style={{
                           width: 38,
