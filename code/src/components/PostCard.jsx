@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronUp, MessageSquare } from 'lucide-react'
 import { postsApi } from '../api.js'
+import PostDiscussionModal from './PostDiscussionModal.jsx'
 
 function timeAgo(dateStr) {
   if (!dateStr) return ''
@@ -39,10 +40,12 @@ export function getBadgeClass(tag = '') {
   return 'category-badge category-badge-default'
 }
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, user }) {
   const [upvotes, setUpvotes] = useState(post.upvotes)
   const [voted, setVoted] = useState(false)
   const [upvoting, setUpvoting] = useState(false)
+  const [showDiscussion, setShowDiscussion] = useState(false)
+  const [commentCount, setCommentCount] = useState(post.comment_count ?? 0)
 
   const handleUpvote = async (e) => {
     e.stopPropagation()
@@ -70,134 +73,164 @@ export default function PostCard({ post }) {
     : (post.category ? [post.category] : ['Tech'])
 
   return (
-    <div
-      className="surface-card surface-card-hover"
-      style={{
-        marginBottom: 14,
-        overflow: 'hidden',
-        cursor: 'pointer',
-        border: '1px solid #DDDDDD',
-        backgroundColor: '#FFFFFF',
-      }}
-    >
-      {/* Hero Banner — gradient photo stand-in */}
+    <>
       <div
-        className={heroClass}
+        onClick={() => setShowDiscussion(true)}
+        className="surface-card surface-card-hover"
         style={{
-          height: 96,
-          display: 'flex',
-          alignItems: 'flex-end',
-          padding: '12px 14px',
-          position: 'relative',
+          marginBottom: 14,
+          overflow: 'hidden',
+          cursor: 'pointer',
+          border: '1px solid #DDDDDD',
+          backgroundColor: '#FFFFFF',
         }}
       >
-        {/* Society avatar or uploaded logo overlaid on banner */}
+        {/* Hero Banner — gradient photo stand-in */}
         <div
+          className={heroClass}
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: '9999px',
-            backgroundColor: '#FFFFFF',
-            border: '2.5px solid #FFFFFF',
+            height: 96,
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 16,
-            fontWeight: 800,
-            color: '#FF385C',
-            flexShrink: 0,
-            position: 'absolute',
-            bottom: -18,
-            left: 14,
-            boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
-            overflow: 'hidden',
+            alignItems: 'flex-end',
+            padding: '12px 14px',
+            position: 'relative',
           }}
         >
-          {post.logo_url ? (
-            <img
-              src={post.logo_url}
-              alt={post.society_name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-              }}
-            />
-          ) : (
-            <span>{societyInitial}</span>
-          )}
-        </div>
-      </div>
-
-      {/* Card body */}
-      <div style={{ padding: '24px 14px 14px', backgroundColor: '#FFFFFF' }}>
-        {/* Header: Society + time + category badge(s) */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#222222' }}>
-              {post.society_name}
-            </span>
-            <span style={{ fontSize: 11, color: '#717171' }}>·</span>
-            <span style={{ fontSize: 11, color: '#717171' }}>
-              {timeAgo(post.created_at)}
-            </span>
+          {/* Society avatar or uploaded logo overlaid on banner */}
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: '9999px',
+              backgroundColor: '#FFFFFF',
+              border: '2.5px solid #FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 16,
+              fontWeight: 800,
+              color: '#FF385C',
+              flexShrink: 0,
+              position: 'absolute',
+              bottom: -18,
+              left: 14,
+              boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
+              overflow: 'hidden',
+            }}
+          >
+            {post.logo_url ? (
+              <img
+                src={post.logo_url}
+                alt={post.society_name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
+              />
+            ) : (
+              <span>{societyInitial}</span>
+            )}
           </div>
+        </div>
 
-          {/* Multiple Tag Badges */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-            {tags.map((tag) => (
-              <span key={tag} className={getBadgeClass(tag)}>
-                {tag}
+        {/* Card body */}
+        <div style={{ padding: '24px 14px 14px', backgroundColor: '#FFFFFF' }}>
+          {/* Header: Society + time + category badge(s) */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#222222' }}>
+                {post.society_name}
               </span>
-            ))}
+              <span style={{ fontSize: 11, color: '#717171' }}>·</span>
+              <span style={{ fontSize: 11, color: '#717171' }}>
+                {timeAgo(post.created_at)}
+              </span>
+            </div>
+
+            {/* Multiple Tag Badges */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+              {tags.map((tag) => (
+                <span key={tag} className={getBadgeClass(tag)}>
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Title & Description */}
-        <h3 style={{ fontSize: 15, fontWeight: 700, color: '#222222', margin: '0 0 6px', lineHeight: 1.35, letterSpacing: '-0.01em' }}>
-          {post.title}
-        </h3>
-        <p style={{ fontSize: 13, color: '#717171', lineHeight: 1.55, margin: '0 0 14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-          {post.description}
-        </p>
+          {/* Title & Description */}
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#222222', margin: '0 0 6px', lineHeight: 1.35, letterSpacing: '-0.01em' }}>
+            {post.title}
+          </h3>
+          <p style={{ fontSize: 13, color: '#717171', lineHeight: 1.55, margin: '0 0 14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {post.description}
+          </p>
 
-        {/* Footer: Upvote & Comments */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 12,
-            borderTop: '1px solid #DDDDDD',
-          }}
-        >
-          <button
-            onClick={handleUpvote}
+          {/* Footer: Upvote & Comments */}
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 5,
-              padding: '6px 14px',
-              borderRadius: '9999px',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: voted ? 'default' : 'pointer',
-              transition: 'all 0.15s ease',
-              backgroundColor: voted ? '#FF385C' : '#FFFFFF',
-              color: voted ? '#FFFFFF' : '#222222',
-              border: voted ? 'none' : '1px solid #DDDDDD',
-              boxShadow: voted ? '0 2px 8px rgba(255,56,92,0.30)' : '0 1px 4px rgba(0,0,0,0.06)',
+              justifyContent: 'space-between',
+              paddingTop: 12,
+              borderTop: '1px solid #DDDDDD',
             }}
           >
-            <ChevronUp size={14} strokeWidth={voted ? 2.5 : 2} />
-            <span>{upvotes}</span>
-          </button>
+            <button
+              onClick={handleUpvote}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '6px 14px',
+                borderRadius: '9999px',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: voted ? 'default' : 'pointer',
+                transition: 'all 0.15s ease',
+                backgroundColor: voted ? '#FF385C' : '#FFFFFF',
+                color: voted ? '#FFFFFF' : '#222222',
+                border: voted ? 'none' : '1px solid #DDDDDD',
+                boxShadow: voted ? '0 2px 8px rgba(255,56,92,0.30)' : '0 1px 4px rgba(0,0,0,0.06)',
+              }}
+            >
+              <ChevronUp size={14} strokeWidth={voted ? 2.5 : 2} />
+              <span>{upvotes}</span>
+            </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#717171', fontSize: 13 }}>
-            <MessageSquare size={14} />
-            <span>{post.comment_count ?? 0}</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowDiscussion(true)
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                color: '#717171',
+                fontSize: 13,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 8,
+              }}
+            >
+              <MessageSquare size={14} />
+              <span>{commentCount}</span>
+            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Post Discussion Modal with Reddit-style user flairs */}
+      <PostDiscussionModal
+        post={post}
+        user={user}
+        isOpen={showDiscussion}
+        onClose={() => setShowDiscussion(false)}
+        onCommentAdded={() => setCommentCount((c) => c + 1)}
+      />
+    </>
   )
 }

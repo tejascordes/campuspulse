@@ -502,6 +502,93 @@ const SEED_APPLICATIONS = [
   },
 ]
 
+const SEED_COMMENTS = [
+  {
+    id: 1,
+    post_id: 1,
+    author_name: "Rohan Verma",
+    author_email: "rohan.v@thapar.edu",
+    author_flair: {
+      society_name: "CCS",
+      role: "Core Team",
+      badge_color: "#FF385C",
+    },
+    content: "Registrations are filling up fast! Mentors from Google and Microsoft will be on floor from 8 PM onwards.",
+    created_at: new Date(now - 2 * 3600 * 1000).toISOString(),
+    upvotes: 24,
+  },
+  {
+    id: 2,
+    post_id: 1,
+    author_name: "Ananya Sharma",
+    author_email: "ananya.s@thapar.edu",
+    author_flair: {
+      society_name: "OWASP",
+      role: "Technical Lead",
+      badge_color: "#10B981",
+    },
+    content: "Is overnight hardware hacking allowed in the lab, or is it pure software only this year?",
+    created_at: new Date(now - 1.5 * 3600 * 1000).toISOString(),
+    upvotes: 11,
+  },
+  {
+    id: 3,
+    post_id: 1,
+    author_name: "Kabir Singh",
+    author_email: "kabir.s@thapar.edu",
+    author_flair: {
+      society_name: "CCS",
+      role: "Lead Organizer",
+      badge_color: "#FF385C",
+    },
+    content: "@Ananya Hardware track has its own dedicated bench with ESP32s, Arduinos, and IoT sensor kits provided on spot!",
+    created_at: new Date(now - 1 * 3600 * 1000).toISOString(),
+    upvotes: 19,
+  },
+  {
+    id: 4,
+    post_id: 2,
+    author_name: "Priya Patel",
+    author_email: "priya.p@thapar.edu",
+    author_flair: {
+      society_name: "Mudra",
+      role: "President",
+      badge_color: "#8B5CF6",
+    },
+    content: "Acoustic sets start at 6:30 PM sharp near Nirvana Park stage. Hot cocoa and refreshments will be served!",
+    created_at: new Date(now - 4 * 3600 * 1000).toISOString(),
+    upvotes: 38,
+  },
+  {
+    id: 5,
+    post_id: 3,
+    author_name: "Tanmay Roy",
+    author_email: "tanmay.r@thapar.edu",
+    author_flair: {
+      society_name: "Trident",
+      role: "Aerospace Lead",
+      badge_color: "#3B82F6",
+    },
+    content: "Custom FPV racing drones will be demonstrated on the main football ground right after the opening keynote.",
+    created_at: new Date(now - 5 * 3600 * 1000).toISOString(),
+    upvotes: 16,
+  },
+  {
+    id: 6,
+    post_id: 4,
+    author_name: "Aarav Gupta",
+    author_email: "aarav.g@thapar.edu",
+    author_flair: {
+      society_name: "Rotaract",
+      role: "Community Lead",
+      badge_color: "#EC4899",
+    },
+    content: "Certificate of appreciation + 20 volunteer service hours will be provided to all student mentors participating.",
+    created_at: new Date(now - 3 * 3600 * 1000).toISOString(),
+    upvotes: 14,
+  },
+]
+
 const DEFAULT_USER = {
   id: 1,
   name: "Student User",
@@ -512,6 +599,16 @@ const DEFAULT_USER = {
   logo_url: null,
   default_calendar_privacy: "CLOSE_FRIENDS",
   bio: "CSE '26 | Thapar Institute Student",
+  flair: {
+    society_name: "CCS",
+    role: "Member",
+    badge_color: "#FF385C",
+    is_active: true,
+  },
+  society_memberships: [
+    { society_name: "CCS", role: "Member", badge_color: "#FF385C" },
+    { society_name: "OWASP", role: "Member", badge_color: "#10B981" },
+  ],
 }
 
 class MockStore {
@@ -530,6 +627,7 @@ class MockStore {
         this.societies = parsed.societies || SEED_SOCIETIES
         this.friends = parsed.friends || SEED_FRIENDS
         this.applications = parsed.applications || SEED_APPLICATIONS
+        this.comments = parsed.comments || SEED_COMMENTS
         this.user = parsed.user || DEFAULT_USER
         return
       }
@@ -542,6 +640,7 @@ class MockStore {
     this.societies = [...SEED_SOCIETIES]
     this.friends = [...SEED_FRIENDS]
     this.applications = [...SEED_APPLICATIONS]
+    this.comments = [...SEED_COMMENTS]
     this.user = { ...DEFAULT_USER }
     this.persist()
   }
@@ -557,6 +656,8 @@ class MockStore {
           societies: this.societies,
           friends: this.friends,
           applications: this.applications,
+          comments: this.comments,
+          comments: this.comments,
           user: this.user,
         })
       )
@@ -895,6 +996,80 @@ class MockStore {
     this.friends = this.friends.filter((f) => f.id !== Number(id))
     this.persist()
     return { success: true, message: "Friend removed successfully" }
+  }
+
+  getPostComments(postId) {
+    const pid = Number(postId)
+    return (this.comments || [])
+      .filter((c) => c.post_id === pid)
+      .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  }
+
+  addPostComment(postId, data) {
+    const pid = Number(postId)
+    const activeFlair = this.user?.flair?.is_active !== false ? this.user?.flair : null
+    const newComment = {
+      id: Date.now(),
+      post_id: pid,
+      author_name: data.author_name || this.user?.name || "Student User",
+      author_email: data.author_email || this.user?.email || "student@thapar.edu",
+      author_flair: data.author_flair || activeFlair || (this.user?.account_type === 'society' ? { society_name: this.user?.society_name || 'CCS', role: 'Official', badge_color: '#FF385C' } : null),
+      content: data.content,
+      created_at: new Date().toISOString(),
+      upvotes: 1,
+    }
+    if (!this.comments) this.comments = []
+    this.comments.push(newComment)
+
+    // Update comment_count on post
+    const post = this.posts.find((p) => p.id === pid)
+    if (post) {
+      post.comment_count = (post.comment_count || 0) + 1
+    }
+
+    this.persist()
+    return newComment
+  }
+
+  upvoteComment(commentId) {
+    const cid = Number(commentId)
+    const comment = (this.comments || []).find((c) => c.id === cid)
+    if (comment) {
+      comment.upvotes = (comment.upvotes || 0) + 1
+      this.persist()
+      return { success: true, upvotes: comment.upvotes }
+    }
+    return { success: true, upvotes: 1 }
+  }
+
+  updateUserFlair(flairData) {
+    if (!this.user) return null
+    this.user.flair = {
+      society_name: flairData.society_name,
+      role: flairData.role || "Member",
+      badge_color: flairData.badge_color || "#FF385C",
+      is_active: flairData.is_active ?? true,
+      logo_url: flairData.logo_url || null,
+    }
+
+    // Also update memberships array if not already present
+    if (!this.user.society_memberships) this.user.society_memberships = []
+    const existing = this.user.society_memberships.find(
+      (m) => m.society_name.toLowerCase() === flairData.society_name.toLowerCase()
+    )
+    if (existing) {
+      existing.role = flairData.role || existing.role
+      existing.badge_color = flairData.badge_color || existing.badge_color
+    } else if (flairData.society_name) {
+      this.user.society_memberships.push({
+        society_name: flairData.society_name,
+        role: flairData.role || "Member",
+        badge_color: flairData.badge_color || "#FF385C",
+      })
+    }
+
+    this.persist()
+    return this.user
   }
 
   updateProfile(data) {

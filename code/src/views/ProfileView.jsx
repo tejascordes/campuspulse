@@ -14,9 +14,12 @@ import {
   Sparkles,
   Clock,
   ArrowRight,
+  Tag,
+  Award,
   Image as ImageIcon,
 } from 'lucide-react'
 import { authApi, societiesApi } from '../api.js'
+import SocietyFlairBadge from '../components/SocietyFlairBadge.jsx'
 
 const PRIVACY_OPTIONS = [
   {
@@ -46,6 +49,8 @@ const STAT_CARDS = [
 ]
 
 const SOCIETY_CATEGORIES = ['Tech', 'Cultural', 'Sports', 'Academic', 'Literary', 'Social & Welfare']
+const POPULAR_SOCIETIES = ['CCS', 'OWASP', 'Mudra', 'Trident', 'E-Cell', 'Aagaaz', 'Rotaract', 'Quiz Club', 'FAP', 'ACM']
+const POPULAR_ROLES = ['Core Team', 'President', 'Tech Lead', 'Executive', 'Organizer', 'Member', 'Designer', 'Volunteer']
 
 export default function ProfileView({ user, token, onLogout, onUpdateUser, onNavigate }) {
   const isAdmin = user?.email?.toLowerCase() === 'tkorde_be@thapar.edu' || user?.account_type === 'admin'
@@ -61,6 +66,13 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
   const [logoUrl, setLogoUrl] = useState(user?.logo_url || '')
   const fileInputRef = useRef(null)
 
+  // Society Flair state (Reddit-style user flair)
+  const [flairSociety, setFlairSociety] = useState(user?.flair?.society_name || 'CCS')
+  const [flairRole, setFlairRole] = useState(user?.flair?.role || 'Member')
+  const [flairActive, setFlairActive] = useState(user?.flair?.is_active ?? true)
+  const [savingFlair, setSavingFlair] = useState(false)
+  const [savedFlair, setSavedFlair] = useState(false)
+
   // Society Application Form State (for Students)
   const [applyData, setApplyData] = useState({
     society_name: '',
@@ -72,6 +84,25 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
   const [submittingApp, setSubmittingApp] = useState(false)
   const [appSubmitted, setAppSubmitted] = useState(isPendingSociety)
   const applyFileInputRef = useRef(null)
+
+  const handleSaveFlair = async (e) => {
+    e.preventDefault()
+    setSavingFlair(true)
+    try {
+      const updated = await authApi.updateFlair({
+        society_name: flairSociety,
+        role: flairRole,
+        is_active: flairActive,
+      })
+      onUpdateUser(updated)
+      setSavedFlair(true)
+      setTimeout(() => setSavedFlair(false), 2500)
+    } catch (err) {
+      console.error('Failed to save flair:', err)
+    } finally {
+      setSavingFlair(false)
+    }
+  }
 
   const handlePrivacyChange = async (val) => {
     setPrivacy(val)
@@ -361,7 +392,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                 <h2
                   style={{
                     fontSize: 16,
@@ -429,6 +460,11 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                     Student
                   </span>
                 )}
+
+                {/* User Active Society Flair (Reddit-style) */}
+                {user?.flair?.is_active !== false && user?.flair?.society_name && !isApprovedSociety && (
+                  <SocietyFlairBadge flair={user.flair} size="sm" />
+                )}
               </div>
               <p
                 style={{
@@ -491,6 +527,204 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
 
         {/* Right Column: Role Actions & Settings */}
         <div className="md:col-span-7" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* 1. Reddit-Style User Flair & Society Membership Card */}
+          <div
+            className="surface-card"
+            style={{ padding: 22, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '9999px',
+                    backgroundColor: '#FFF5F5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FF385C',
+                  }}
+                >
+                  <Tag size={16} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: 0 }}>
+                    Society Flair (Reddit-Style Tag)
+                  </h3>
+                  <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
+                    Display your society membership tag next to your name in discussions
+                  </p>
+                </div>
+              </div>
+              {savedFlair && (
+                <span style={{ fontSize: 12, color: '#10B981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Check size={14} /> Flair Saved
+                </span>
+              )}
+            </div>
+
+            {/* Live Flair Preview Banner */}
+            <div
+              style={{
+                padding: '12px 14px',
+                borderRadius: 12,
+                backgroundColor: '#F9FAFB',
+                border: '1px solid #E5E7EB',
+                marginBottom: 16,
+              }}
+            >
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 6px' }}>
+                Live Discussion Preview
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: '9999px',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #DDDDDD',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: '#222222',
+                  }}
+                >
+                  {initials}
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#222222' }}>
+                  {user?.name || user?.email?.split('@')[0] || 'You'}
+                </span>
+                {flairActive ? (
+                  <SocietyFlairBadge
+                    flair={{ society_name: flairSociety, role: flairRole }}
+                    size="sm"
+                  />
+                ) : (
+                  <span style={{ fontSize: 11, color: '#9CA3AF', fontStyle: 'italic' }}>
+                    (Flair hidden)
+                  </span>
+                )}
+                <span style={{ fontSize: 11, color: '#9CA3AF' }}>· Just now</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveFlair} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Society Selector Chips */}
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
+                  Select Your Society
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {POPULAR_SOCIETIES.map((soc) => {
+                    const isSelected = flairSociety === soc
+                    return (
+                      <button
+                        key={soc}
+                        type="button"
+                        onClick={() => setFlairSociety(soc)}
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: '9999px',
+                          fontSize: 12,
+                          fontWeight: isSelected ? 700 : 500,
+                          backgroundColor: isSelected ? '#000000' : '#FFFFFF',
+                          color: isSelected ? '#FFFFFF' : '#222222',
+                          border: isSelected ? '1px solid #000000' : '1px solid #DDDDDD',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {soc}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Role / Position */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#222222' }}>
+                    Your Role / Title in Society
+                  </label>
+                  <span style={{ fontSize: 11, color: '#717171' }}>e.g. Core Team, Lead, Member</span>
+                </div>
+                <input
+                  className="input-standard"
+                  value={flairRole}
+                  onChange={(e) => setFlairRole(e.target.value)}
+                  placeholder="e.g. Core Team, President, Technical Lead"
+                  style={{ marginBottom: 6 }}
+                />
+                {/* Quick Role Presets */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {POPULAR_ROLES.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setFlairRole(r)}
+                      style={{
+                        padding: '3px 8px',
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        backgroundColor: flairRole === r ? '#F3F4F6' : '#FFFFFF',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: 6,
+                        color: '#4B5563',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Flair Visibility Toggle */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  backgroundColor: '#F7F7F7',
+                  border: '1px solid #DDDDDD',
+                }}
+              >
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#222222', margin: 0 }}>
+                    Show Flair in Discussions
+                  </p>
+                  <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
+                    Visible next to all your replies on campus posts
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={flairActive}
+                  onChange={(e) => setFlairActive(e.target.checked)}
+                  style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#FF385C' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ padding: '10px 20px', fontSize: 13 }}
+                  disabled={savingFlair}
+                >
+                  {savingFlair ? <Loader2 size={14} className="animate-spin" /> : 'Save Society Flair'}
+                </button>
+              </div>
+            </form>
+          </div>
 
           {/* 1. If User is Student & Pending Approval */}
           {isStudent && (appSubmitted || isPendingSociety) && (

@@ -341,7 +341,7 @@ export default function FeedView({ token: _token, user, onNavigate }) {
               ) : (
                 <div>
                   {posts.map((post) => (
-                    <PostCard key={post.id} post={post} />
+                    <PostCard key={post.id} post={post} user={user} />
                   ))}
                 </div>
               )

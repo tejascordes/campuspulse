@@ -62,7 +62,31 @@ function resolveFallback(config, error) {
     }
   }
 
-  // 1. Posts
+  // 1. Posts Comments
+  if (url.match(/\/api\/posts\/\d+\/comments/)) {
+    const match = url.match(/\/api\/posts\/(\d+)\/comments/)
+    const id = match ? match[1] : null
+    if (method === 'get') {
+      return { data: mockStore.getPostComments(id), status: 200 }
+    }
+    if (method === 'post') {
+      return { data: mockStore.addPostComment(id, data || {}), status: 201 }
+    }
+  }
+
+  // 1b. Comment Upvote
+  if (url.match(/\/api\/comments\/\d+\/upvote/)) {
+    const match = url.match(/\/api\/comments\/(\d+)\/upvote/)
+    const id = match ? match[1] : null
+    return { data: mockStore.upvoteComment(id), status: 200 }
+  }
+
+  // 1c. User Flair
+  if (url.includes('/api/auth/flair') && method === 'post') {
+    return { data: mockStore.updateUserFlair(data || {}), status: 200 }
+  }
+
+  // 1d. Posts
   if (url.includes('/api/posts') && !url.includes('/upvote')) {
     if (method === 'get') {
       return { data: mockStore.getPosts(params), status: 200 }
@@ -261,6 +285,15 @@ export const authApi = {
       return mockStore.updateProfile(data)
     }
   },
+  updateFlair: async (flairData) => {
+    try {
+      const res = await apiClient.post('/api/auth/flair', flairData)
+      return res.data
+    } catch {
+      triggerFallbackMode('Flair Sync Unavailable')
+      return mockStore.updateUserFlair(flairData)
+    }
+  },
 }
 
 export const postsApi = {
@@ -274,6 +307,18 @@ export const postsApi = {
   },
   upvotePost: async (id) => {
     const res = await apiClient.post(`/api/posts/${id}/upvote`)
+    return res.data
+  },
+  getComments: async (postId) => {
+    const res = await apiClient.get(`/api/posts/${postId}/comments`)
+    return res.data
+  },
+  addComment: async (postId, commentData) => {
+    const res = await apiClient.post(`/api/posts/${postId}/comments`, commentData)
+    return res.data
+  },
+  upvoteComment: async (commentId) => {
+    const res = await apiClient.post(`/api/comments/${commentId}/upvote`)
     return res.data
   },
 }
