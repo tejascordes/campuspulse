@@ -148,16 +148,47 @@ function resolveFallback(config, error) {
   // 11. Auth Login / Register
   if (url.includes('/api/auth/login')) {
     return {
-      data: mockStore.login(data?.email, data?.password, data?.name),
+      data: mockStore.login(data?.email, data?.password, data?.name, data?.account_type, data?.society_name, data?.logo_url),
       status: 200,
     }
   }
 
   if (url.includes('/api/auth/register')) {
     return {
-      data: mockStore.register(data?.name, data?.email),
+      data: mockStore.register(data?.name, data?.email, data?.account_type, data?.society_name, data?.logo_url),
       status: 200,
     }
+  }
+
+  // 12. Admin API
+  if (url.includes('/api/admin/pending-societies')) {
+    return { data: mockStore.getPendingApplications(), status: 200 }
+  }
+
+  if (url.match(/\/api\/admin\/societies\/\d+\/approve/)) {
+    const match = url.match(/\/api\/admin\/societies\/(\d+)\/approve/)
+    const id = match ? match[1] : null
+    return { data: mockStore.approveSocietyApplication(id), status: 200 }
+  }
+
+  if (url.match(/\/api\/admin\/societies\/\d+\/reject/)) {
+    const match = url.match(/\/api\/admin\/societies\/(\d+)\/reject/)
+    const id = match ? match[1] : null
+    return { data: mockStore.rejectSocietyApplication(id), status: 200 }
+  }
+
+  if (url.match(/\/api\/admin\/posts\/\d+/) && method === 'delete') {
+    const match = url.match(/\/api\/admin\/posts\/(\d+)/)
+    const id = match ? match[1] : null
+    return { data: mockStore.deletePost(id), status: 200 }
+  }
+
+  if (url.includes('/api/admin/stats')) {
+    return { data: mockStore.getAdminStats(), status: 200 }
+  }
+
+  if (url.includes('/api/societies/apply') && method === 'post') {
+    return { data: mockStore.applyForSociety(data || {}), status: 201 }
   }
 
   return null
@@ -297,6 +328,57 @@ export const societiesApi = {
   getSociety: async (name) => {
     const res = await apiClient.get(`/api/societies/${encodeURIComponent(name)}`)
     return res.data
+  },
+  applyForSociety: async (applicationData) => {
+    try {
+      const res = await apiClient.post('/api/societies/apply', applicationData)
+      return res.data
+    } catch {
+      return mockStore.applyForSociety(applicationData)
+    }
+  },
+}
+
+export const adminApi = {
+  getPendingSocieties: async () => {
+    try {
+      const res = await apiClient.get('/api/admin/pending-societies')
+      return res.data
+    } catch {
+      return mockStore.getPendingApplications()
+    }
+  },
+  approveSociety: async (appId) => {
+    try {
+      const res = await apiClient.post(`/api/admin/societies/${appId}/approve`)
+      return res.data
+    } catch {
+      return mockStore.approveSocietyApplication(appId)
+    }
+  },
+  rejectSociety: async (appId) => {
+    try {
+      const res = await apiClient.post(`/api/admin/societies/${appId}/reject`)
+      return res.data
+    } catch {
+      return mockStore.rejectSocietyApplication(appId)
+    }
+  },
+  deletePost: async (postId) => {
+    try {
+      const res = await apiClient.delete(`/api/admin/posts/${postId}`)
+      return res.data
+    } catch {
+      return mockStore.deletePost(postId)
+    }
+  },
+  getStats: async () => {
+    try {
+      const res = await apiClient.get('/api/admin/stats')
+      return res.data
+    } catch {
+      return mockStore.getAdminStats()
+    }
   },
 }
 

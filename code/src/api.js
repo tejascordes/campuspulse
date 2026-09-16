@@ -84,9 +84,27 @@ function resolveFallback(config, error) {
     if (method === 'get') {
       return { data: mockStore.getEvents(params), status: 200 }
     }
+    if (method === 'post') {
+      return { data: mockStore.createEvent(data || {}), status: 201 }
+    }
   }
 
-  // 4. Event Registration
+  // 4. Friends API
+  if (url.includes('/api/friends')) {
+    if (url.includes('/add') && method === 'post') {
+      return { data: mockStore.addFriend(data || {}), status: 200 }
+    }
+    if (method === 'delete') {
+      const match = url.match(/\/api\/friends\/(\d+)/)
+      const id = match ? match[1] : null
+      return { data: mockStore.removeFriend(id), status: 200 }
+    }
+    if (method === 'get') {
+      return { data: mockStore.getFriends(), status: 200 }
+    }
+  }
+
+  // 5. Event Registration
   if (url.match(/\/api\/events\/\d+\/register/)) {
     const match = url.match(/\/api\/events\/(\d+)\/register/)
     const id = match ? match[1] : null
@@ -95,12 +113,12 @@ function resolveFallback(config, error) {
     return { data: { success: true, event: ev }, status: 200 }
   }
 
-  // 5. Event Invites
+  // 6. Event Invites
   if (url.match(/\/api\/events\/\d+\/invite/)) {
     return { data: { success: true, message: 'Invites sent successfully' }, status: 200 }
   }
 
-  // 6. Societies List & Detail
+  // 7. Societies List & Detail
   if (url.includes('/api/societies')) {
     const match = url.match(/\/api\/societies\/(.+)/)
     if (match && match[1]) {
@@ -109,17 +127,17 @@ function resolveFallback(config, error) {
     return { data: mockStore.getSocieties(), status: 200 }
   }
 
-  // 7. Map Pins
+  // 8. Map Pins
   if (url.includes('/api/map/pins')) {
     return { data: mockStore.getPins(), status: 200 }
   }
 
-  // 8. Calendar Save
+  // 9. Calendar Save
   if (url.includes('/api/calendar/add')) {
     return { data: { success: true, message: 'Event added to campus calendar' }, status: 200 }
   }
 
-  // 9. Auth Profile
+  // 10. Auth Profile
   if (url.includes('/api/auth/profile')) {
     if (method === 'patch') {
       return { data: mockStore.updateProfile(data || {}), status: 200 }
@@ -127,19 +145,50 @@ function resolveFallback(config, error) {
     return { data: mockStore.user, status: 200 }
   }
 
-  // 10. Auth Login / Register
+  // 11. Auth Login / Register
   if (url.includes('/api/auth/login')) {
     return {
-      data: mockStore.login(data?.email, data?.password, data?.name),
+      data: mockStore.login(data?.email, data?.password, data?.name, data?.account_type, data?.society_name, data?.logo_url),
       status: 200,
     }
   }
 
   if (url.includes('/api/auth/register')) {
     return {
-      data: mockStore.register(data?.name, data?.email),
+      data: mockStore.register(data?.name, data?.email, data?.account_type, data?.society_name, data?.logo_url),
       status: 200,
     }
+  }
+
+  // 12. Admin API
+  if (url.includes('/api/admin/pending-societies')) {
+    return { data: mockStore.getPendingApplications(), status: 200 }
+  }
+
+  if (url.match(/\/api\/admin\/societies\/\d+\/approve/)) {
+    const match = url.match(/\/api\/admin\/societies\/(\d+)\/approve/)
+    const id = match ? match[1] : null
+    return { data: mockStore.approveSocietyApplication(id), status: 200 }
+  }
+
+  if (url.match(/\/api\/admin\/societies\/\d+\/reject/)) {
+    const match = url.match(/\/api\/admin\/societies\/(\d+)\/reject/)
+    const id = match ? match[1] : null
+    return { data: mockStore.rejectSocietyApplication(id), status: 200 }
+  }
+
+  if (url.match(/\/api\/admin\/posts\/\d+/) && method === 'delete') {
+    const match = url.match(/\/api\/admin\/posts\/(\d+)/)
+    const id = match ? match[1] : null
+    return { data: mockStore.deletePost(id), status: 200 }
+  }
+
+  if (url.includes('/api/admin/stats')) {
+    return { data: mockStore.getAdminStats(), status: 200 }
+  }
+
+  if (url.includes('/api/societies/apply') && method === 'post') {
+    return { data: mockStore.applyForSociety(data || {}), status: 201 }
   }
 
   return null
@@ -234,6 +283,10 @@ export const eventsApi = {
     const res = await apiClient.get('/api/events', { params })
     return res.data
   },
+  createEvent: async (eventData) => {
+    const res = await apiClient.post('/api/events/create', eventData)
+    return res.data
+  },
   register: async (id) => {
     const res = await apiClient.post(`/api/events/${id}/register`)
     return res.data
@@ -252,6 +305,21 @@ export const eventsApi = {
   },
 }
 
+export const friendsApi = {
+  getFriends: async () => {
+    const res = await apiClient.get('/api/friends')
+    return res.data
+  },
+  addFriend: async (friendData) => {
+    const res = await apiClient.post('/api/friends/add', friendData)
+    return res.data
+  },
+  removeFriend: async (friendId) => {
+    const res = await apiClient.delete(`/api/friends/${friendId}`)
+    return res.data
+  },
+}
+
 export const societiesApi = {
   getSocieties: async () => {
     const res = await apiClient.get('/api/societies')
@@ -260,6 +328,57 @@ export const societiesApi = {
   getSociety: async (name) => {
     const res = await apiClient.get(`/api/societies/${encodeURIComponent(name)}`)
     return res.data
+  },
+  applyForSociety: async (applicationData) => {
+    try {
+      const res = await apiClient.post('/api/societies/apply', applicationData)
+      return res.data
+    } catch {
+      return mockStore.applyForSociety(applicationData)
+    }
+  },
+}
+
+export const adminApi = {
+  getPendingSocieties: async () => {
+    try {
+      const res = await apiClient.get('/api/admin/pending-societies')
+      return res.data
+    } catch {
+      return mockStore.getPendingApplications()
+    }
+  },
+  approveSociety: async (appId) => {
+    try {
+      const res = await apiClient.post(`/api/admin/societies/${appId}/approve`)
+      return res.data
+    } catch {
+      return mockStore.approveSocietyApplication(appId)
+    }
+  },
+  rejectSociety: async (appId) => {
+    try {
+      const res = await apiClient.post(`/api/admin/societies/${appId}/reject`)
+      return res.data
+    } catch {
+      return mockStore.rejectSocietyApplication(appId)
+    }
+  },
+  deletePost: async (postId) => {
+    try {
+      const res = await apiClient.delete(`/api/admin/posts/${postId}`)
+      return res.data
+    } catch {
+      return mockStore.deletePost(postId)
+    }
+  },
+  getStats: async () => {
+    try {
+      const res = await apiClient.get('/api/admin/stats')
+      return res.data
+    } catch {
+      return mockStore.getAdminStats()
+    }
   },
 }
 

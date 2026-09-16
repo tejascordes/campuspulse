@@ -4,6 +4,7 @@ import FeedView from './views/FeedView.jsx'
 import MapView from './views/MapView.jsx'
 import ProfileView from './views/ProfileView.jsx'
 import LoginView from './views/LoginView.jsx'
+import AdminView from './views/AdminView.jsx'
 
 import { API_URL } from './api.js'
 export { API_URL }
@@ -44,13 +45,14 @@ export default function App() {
     <div className="h-full w-full flex flex-col overflow-hidden bg-white" style={{ backgroundColor: '#FFFFFF' }}>
       {/* Main content area */}
       <div className="flex-1 overflow-hidden relative w-full bg-white">
-        {tab === 'feed' && <FeedView token={token} user={user} />}
+        {tab === 'feed' && <FeedView token={token} user={user} onNavigate={setTab} />}
         {tab === 'map' && <MapView token={token} />}
-        {tab === 'profile' && <ProfileView user={user} token={token} onLogout={handleLogout} onUpdateUser={updateUser} />}
+        {tab === 'profile' && <ProfileView user={user} token={token} onLogout={handleLogout} onUpdateUser={updateUser} onNavigate={setTab} />}
+        {tab === 'admin' && <AdminView user={user} />}
       </div>
 
       {/* Bottom Navigation */}
-      <Navbar activeTab={tab} onTabChange={setTab} />
+      <Navbar activeTab={tab} onTabChange={setTab} user={user} />
     </div>
   )
 }

@@ -1,13 +1,15 @@
 import { motion } from 'framer-motion'
-import { Rss, MapPin, User } from 'lucide-react'
+import { Rss, MapPin, User, ShieldCheck } from 'lucide-react'
 
-const tabs = [
-  { id: 'feed', label: 'Feed', icon: Rss },
-  { id: 'map', label: 'Explore', icon: MapPin },
-  { id: 'profile', label: 'Profile', icon: User },
-]
+export default function Navbar({ activeTab, onTabChange, user }) {
+  const isAdmin = user?.email?.toLowerCase() === 'tkorde_be@thapar.edu' || user?.account_type === 'admin'
 
-export default function Navbar({ activeTab, onTabChange }) {
+  const tabs = [
+    { id: 'feed', label: 'Feed', icon: Rss },
+    { id: 'map', label: 'Explore', icon: MapPin },
+    { id: 'profile', label: 'Profile', icon: User },
+    ...(isAdmin ? [{ id: 'admin', label: 'Admin', icon: ShieldCheck }] : []),
+  ]
   return (
     <nav
       className="w-full relative z-50 flex-shrink-0"

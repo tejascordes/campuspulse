@@ -475,25 +475,43 @@ const SEED_FRIENDS = [
     branch: "MECH '26",
     is_close_friend: false,
   },
+]
+
+const SEED_APPLICATIONS = [
   {
-    id: 106,
-    name: "Simran Kaur",
-    email: "simran.k@thapar.edu",
-    bio: "COE '26 | Street Play & Dramatics",
-    branch: "COE '26",
-    is_close_friend: false,
+    id: 101,
+    society_name: "Rotaract Club",
+    applicant_name: "Aarav Gupta",
+    applicant_email: "aarav.g@thapar.edu",
+    category: "Non-Tech",
+    description: "Youth wing of Rotary International dedicated to community service and leadership development.",
+    logo_url: null,
+    status: "PENDING", // 'PENDING' | 'APPROVED' | 'REJECTED'
+    applied_at: new Date(now - 12 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 102,
+    society_name: "Quiz Club",
+    applicant_name: "Ananya Sharma",
+    applicant_email: "ananya.s@thapar.edu",
+    category: "Non-Tech",
+    description: "Thapar's official quizzing guild organizing inter-college trivia and general knowledge bowls.",
+    logo_url: null,
+    status: "PENDING",
+    applied_at: new Date(now - 36 * 3600 * 1000).toISOString(),
   },
 ]
 
 const DEFAULT_USER = {
   id: 1,
-  name: "CCS (Computer Club Society)",
-  society_name: "CCS",
-  account_type: "society",
+  name: "Student User",
+  email: "student@thapar.edu",
+  account_type: "student", // 'student' | 'society' | 'admin'
+  society_name: null,
+  society_status: null, // 'APPROVED' | 'PENDING' | 'REJECTED'
   logo_url: null,
-  email: "ccs@thapar.edu",
   default_calendar_privacy: "CLOSE_FRIENDS",
-  bio: "Official Computer Club Society | HackThapar Organizers",
+  bio: "CSE '26 | Thapar Institute Student",
 }
 
 class MockStore {
@@ -511,6 +529,7 @@ class MockStore {
         this.posts = parsed.posts || SEED_POSTS
         this.societies = parsed.societies || SEED_SOCIETIES
         this.friends = parsed.friends || SEED_FRIENDS
+        this.applications = parsed.applications || SEED_APPLICATIONS
         this.user = parsed.user || DEFAULT_USER
         return
       }
@@ -522,6 +541,7 @@ class MockStore {
     this.posts = [...SEED_POSTS]
     this.societies = [...SEED_SOCIETIES]
     this.friends = [...SEED_FRIENDS]
+    this.applications = [...SEED_APPLICATIONS]
     this.user = { ...DEFAULT_USER }
     this.persist()
   }
@@ -536,6 +556,7 @@ class MockStore {
           posts: this.posts,
           societies: this.societies,
           friends: this.friends,
+          applications: this.applications,
           user: this.user,
         })
       )
@@ -645,15 +666,22 @@ class MockStore {
   }
 
   login(email, password, name, account_type, society_name, logo_url) {
-    const isSociety = account_type === "society" || email?.includes("society") || (society_name && society_name.trim().length > 0)
-    const socName = society_name || (isSociety ? (name || "Official Society") : null)
+    const cleanEmail = (email || "student@thapar.edu").toLowerCase().trim()
+    const isAdmin = cleanEmail === "tkorde_be@thapar.edu"
+    const isSociety = !isAdmin && (account_type === "society" || cleanEmail.includes("society") || Boolean(society_name))
+    const socName = society_name || (isSociety ? (name || "CCS") : null)
     
     const u = {
       ...this.user,
-      email: email || "society@thapar.edu",
-      name: name || (socName ? `${socName} Official` : (email ? email.split("@")[0] : "Campus User")),
-      account_type: isSociety ? "society" : "student",
-      society_name: socName || this.user?.society_name || "CCS",
+      id: this.user?.id || Date.now(),
+      email: cleanEmail,
+      name: isAdmin
+        ? (name || "Tejas Korde (System Admin)")
+        : (name || (socName ? `${socName} Official` : (cleanEmail ? cleanEmail.split("@")[0] : "Campus Student"))),
+      account_type: isAdmin ? "admin" : (isSociety ? "society" : "student"),
+      role: isAdmin ? "admin" : (isSociety ? "society_admin" : "student"),
+      society_name: isAdmin ? "System Administration" : (isSociety ? (socName || "CCS") : null),
+      society_status: isAdmin ? "APPROVED" : (isSociety ? (this.user?.society_status || "APPROVED") : null),
       logo_url: logo_url || this.user?.logo_url || null,
     }
     this.user = u
@@ -666,25 +694,137 @@ class MockStore {
   }
 
   register(name, email, account_type, society_name, logo_url) {
-    const isSociety = account_type === "society" || Boolean(society_name)
+    const cleanEmail = (email || "student@thapar.edu").toLowerCase().trim()
+    const isAdmin = cleanEmail === "tkorde_be@thapar.edu"
+    const isSociety = !isAdmin && (account_type === "society" || Boolean(society_name))
     const socName = society_name || (isSociety ? name : null)
 
     const u = {
       id: Date.now(),
-      name: name || (socName ? `${socName} Official` : "Campus User"),
-      email: email || "society@thapar.edu",
-      account_type: isSociety ? "society" : "student",
-      society_name: socName || "CCS",
+      name: isAdmin ? "Tejas Korde (System Admin)" : (name || (socName ? `${socName} Official` : "Campus Student")),
+      email: cleanEmail,
+      account_type: isAdmin ? "admin" : (isSociety ? "society" : "student"),
+      role: isAdmin ? "admin" : (isSociety ? "society_admin" : "student"),
+      society_name: isAdmin ? "System Administration" : (isSociety ? socName : null),
+      society_status: isAdmin ? "APPROVED" : (isSociety ? "PENDING" : null),
       logo_url: logo_url || null,
       default_calendar_privacy: "CLOSE_FRIENDS",
-      bio: isSociety ? `Official ${socName || name} Society Account` : "Thapar Institute Student",
+      bio: isAdmin ? "System Administrator" : (isSociety ? `Official ${socName || name} Society Account` : "Thapar Institute Student"),
     }
+
+    // If a new society registered, create a pending application for admin review
+    if (isSociety && socName) {
+      this.applications.unshift({
+        id: Date.now(),
+        society_name: socName,
+        applicant_name: u.name,
+        applicant_email: u.email,
+        category: "Tech",
+        description: u.bio,
+        logo_url: logo_url || null,
+        status: "PENDING",
+        applied_at: new Date().toISOString(),
+      })
+    }
+
     this.user = u
     this.persist()
     return {
       access_token: "demo_fallback_jwt_token_" + Date.now(),
       token_type: "bearer",
       user: u,
+    }
+  }
+
+  applyForSociety(data) {
+    const newApp = {
+      id: Date.now(),
+      society_name: data.society_name,
+      applicant_name: data.applicant_name || this.user?.name || "Student",
+      applicant_email: data.applicant_email || this.user?.email || "student@thapar.edu",
+      category: data.category || "Tech",
+      description: data.description || `Student chapter application for ${data.society_name}`,
+      logo_url: data.logo_url || null,
+      status: "PENDING",
+      applied_at: new Date().toISOString(),
+    }
+    this.applications.unshift(newApp)
+
+    if (this.user) {
+      this.user.society_name = data.society_name
+      this.user.society_status = "PENDING"
+      this.user.account_type = "society"
+    }
+    this.persist()
+    return newApp
+  }
+
+  getPendingApplications() {
+    return this.applications || []
+  }
+
+  approveSocietyApplication(appId) {
+    const app = this.applications.find((a) => a.id === Number(appId))
+    if (app) {
+      app.status = "APPROVED"
+      
+      // Ensure society is in the list of societies
+      const exists = this.societies.some((s) => s.name.toLowerCase() === app.society_name.toLowerCase())
+      if (!exists) {
+        this.societies.unshift({
+          name: app.society_name,
+          tagline: `Official ${app.society_name} Student Society`,
+          category: app.category || "Tech",
+          icon_color: "#FF385C",
+          description: app.description || `Official student society at Thapar Institute.`,
+          follower_count: 50,
+          hub_location: "Campus Student Center",
+          meeting_schedule: "Weekly on Wednesdays",
+          post_count: 0,
+          event_count: 0,
+          logo_url: app.logo_url || null,
+        })
+      }
+
+      // If applicant is currently active user, update their status
+      if (this.user && this.user.email.toLowerCase() === app.applicant_email.toLowerCase()) {
+        this.user.society_status = "APPROVED"
+        this.user.account_type = "society"
+        this.user.role = "society_admin"
+      }
+
+      this.persist()
+      return { success: true, application: app }
+    }
+    return { success: false }
+  }
+
+  rejectSocietyApplication(appId) {
+    const app = this.applications.find((a) => a.id === Number(appId))
+    if (app) {
+      app.status = "REJECTED"
+      if (this.user && this.user.email.toLowerCase() === app.applicant_email.toLowerCase()) {
+        this.user.society_status = "REJECTED"
+      }
+      this.persist()
+      return { success: true, application: app }
+    }
+    return { success: false }
+  }
+
+  deletePost(postId) {
+    this.posts = this.posts.filter((p) => p.id !== Number(postId))
+    this.persist()
+    return { success: true, message: "Post moderated & deleted by System Admin" }
+  }
+
+  getAdminStats() {
+    return {
+      total_posts: this.posts.length,
+      total_events: this.events.length,
+      total_societies: this.societies.length,
+      pending_approvals: this.applications.filter((a) => a.status === "PENDING").length,
+      approved_societies: this.applications.filter((a) => a.status === "APPROVED").length + this.societies.length,
     }
   }
 
