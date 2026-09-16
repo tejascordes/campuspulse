@@ -13,7 +13,7 @@ export default function Navbar({ activeTab, onTabChange }) {
       className="w-full relative z-50 flex-shrink-0"
       style={{
         backgroundColor: '#FFFFFF',
-        borderTop: '1px solid #EBEBEB',
+        borderTop: '1px solid #DDDDDD',
         boxShadow: '0 -2px 12px rgba(0,0,0,0.06)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
@@ -59,7 +59,7 @@ export default function Navbar({ activeTab, onTabChange }) {
                     width: 4,
                     height: 4,
                     borderRadius: '9999px',
-                    backgroundColor: '#FF5A5F',
+                    backgroundColor: '#FF385C',
                   }}
                   transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                 />
@@ -69,7 +69,7 @@ export default function Navbar({ activeTab, onTabChange }) {
                 size={22}
                 strokeWidth={isActive ? 2.2 : 1.7}
                 style={{
-                  color: isActive ? '#FF5A5F' : '#B0B0B0',
+                  color: isActive ? '#FF385C' : '#717171',
                   transition: 'color 0.15s ease',
                 }}
               />
@@ -77,7 +77,7 @@ export default function Navbar({ activeTab, onTabChange }) {
                 style={{
                   fontSize: 11,
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#FF5A5F' : '#B0B0B0',
+                  color: isActive ? '#FF385C' : '#717171',
                   letterSpacing: '-0.01em',
                   transition: 'color 0.15s ease, font-weight 0.15s ease',
                 }}

@@ -27,8 +27,8 @@ function PinMarker({ pin, isSelected, onClick }) {
         center={[pin.latitude, pin.longitude]}
         radius={isSelected ? 20 : 13}
         pathOptions={{
-          color: isSelected ? '#FF5A5F' : '#FFFFFF',
-          fillColor: isSelected ? '#FF5A5F' : '#FFFFFF',
+          color: isSelected ? '#FF385C' : '#FFFFFF',
+          fillColor: isSelected ? '#FF385C' : '#FFFFFF',
           fillOpacity: isSelected ? 0.18 : 0.1,
           weight: isSelected ? 2 : 1,
           opacity: isSelected ? 0.85 : 0.4,
@@ -41,7 +41,7 @@ function PinMarker({ pin, isSelected, onClick }) {
         radius={isSelected ? 8 : 5}
         pathOptions={{
           color: '#FFFFFF',
-          fillColor: isSelected ? '#FF5A5F' : '#FFFFFF',
+          fillColor: isSelected ? '#FF385C' : '#FFFFFF',
           fillOpacity: 1,
           weight: 2,
           opacity: 1,
@@ -52,7 +52,7 @@ function PinMarker({ pin, isSelected, onClick }) {
   )
 }
 
-export default function MapView({ token }) {
+export default function MapView({ token: _token }) {
   const [pins, setPins] = useState([])
   const [selectedPin, setSelectedPin] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -77,7 +77,7 @@ export default function MapView({ token }) {
   const handleCloseSheet = () => setSelectedPin(null)
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden" style={{ backgroundColor: '#F7F7F7' }}>
+    <div className="h-full w-full flex flex-col overflow-hidden bg-white" style={{ backgroundColor: '#FFFFFF' }}>
       <div
         style={{
           flex: 1,
@@ -96,7 +96,7 @@ export default function MapView({ token }) {
             height: '100%',
             position: 'relative',
             overflow: 'hidden',
-            borderColor: '#EBEBEB',
+            borderColor: '#DDDDDD',
           }}
         >
           {/* Mobile floating search pill */}
@@ -110,13 +110,13 @@ export default function MapView({ token }) {
             }}
             className="md:hidden"
           >
-            <div className="search-pill" style={{ pointerEvents: 'auto' }}>
+            <div className="search-pill" style={{ pointerEvents: 'auto', backgroundColor: '#FFFFFF', border: '1px solid #DDDDDD' }}>
               <div
                 style={{
                   width: 30,
                   height: 30,
                   borderRadius: '9999px',
-                  backgroundColor: '#FF5A5F',
+                  backgroundColor: '#FF385C',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -167,12 +167,12 @@ export default function MapView({ token }) {
                   fontSize: 11,
                   fontWeight: 600,
                   backgroundColor: '#FFFFFF',
-                  border: '1px solid #EBEBEB',
-                  color: '#484848',
+                  border: '1px solid #DDDDDD',
+                  color: '#222222',
                   boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                 }}
               >
-                <div style={{ width: 6, height: 6, borderRadius: '9999px', backgroundColor: '#FF5A5F' }} />
+                <div style={{ width: 6, height: 6, borderRadius: '9999px', backgroundColor: '#FF385C' }} />
                 <span>{cat}</span>
               </div>
             ))}
@@ -209,12 +209,12 @@ export default function MapView({ token }) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#F7F7F7',
+                backgroundColor: '#FFFFFF',
               }}
             >
               <div style={{ textAlign: 'center' }}>
-                <Loader2 size={24} className="animate-spin" style={{ color: '#B0B0B0', margin: '0 auto 8px' }} />
-                <p style={{ fontSize: 13, color: '#B0B0B0' }}>Loading campus map…</p>
+                <Loader2 size={24} className="animate-spin" style={{ color: '#FF385C', margin: '0 auto 8px' }} />
+                <p style={{ fontSize: 13, color: '#717171' }}>Loading campus map…</p>
               </div>
             </div>
           )}
@@ -236,13 +236,13 @@ export default function MapView({ token }) {
           style={{ height: '100%', overflow: 'hidden' }}
         >
           {/* Desktop search pill */}
-          <div className="search-pill">
+          <div className="search-pill" style={{ backgroundColor: '#FFFFFF', border: '1px solid #DDDDDD' }}>
             <div
               style={{
                 width: 30,
                 height: 30,
                 borderRadius: '9999px',
-                backgroundColor: '#FF5A5F',
+                backgroundColor: '#FF385C',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -280,11 +280,11 @@ export default function MapView({ token }) {
                     borderRadius: '9999px',
                     fontSize: 12,
                     fontWeight: 600,
-                    border: isActive ? 'none' : '1.5px solid #DDDDDD',
+                    border: isActive ? 'none' : '1px solid #DDDDDD',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
-                    backgroundColor: isActive ? '#222222' : '#FFFFFF',
-                    color: isActive ? '#FFFFFF' : '#484848',
+                    backgroundColor: isActive ? '#000000' : '#FFFFFF',
+                    color: isActive ? '#FFFFFF' : '#222222',
                     boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.14)' : '0 1px 4px rgba(0,0,0,0.06)',
                   }}
                 >
@@ -308,12 +308,12 @@ export default function MapView({ token }) {
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     backgroundColor: isSelected ? '#FFF5F5' : '#FFFFFF',
-                    border: isSelected ? '1.5px solid #FF5A5F' : '1px solid #EBEBEB',
-                    boxShadow: isSelected ? '0 2px 12px rgba(255,90,95,0.14)' : '0 1px 4px rgba(0,0,0,0.06)',
+                    border: isSelected ? '1.5px solid #FF385C' : '1px solid #DDDDDD',
+                    boxShadow: isSelected ? '0 2px 12px rgba(255,56,92,0.14)' : '0 1px 4px rgba(0,0,0,0.06)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       {pin.category}
                     </span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#F59E0B' }}>★ {pin.rating}</span>
@@ -321,7 +321,7 @@ export default function MapView({ token }) {
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: '#222222', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {pin.name}
                   </h4>
-                  <p style={{ fontSize: 11, color: '#B0B0B0', margin: '3px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontSize: 11, color: '#717171', margin: '3px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {pin.description}
                   </p>
                 </div>

@@ -82,6 +82,7 @@ export default function InviteModal({ event, onClose }) {
             maxHeight: '90vh',
             overflowY: 'auto',
             boxShadow: '0 -4px 40px rgba(0,0,0,0.14)',
+            border: '1px solid #DDDDDD',
           }}
           className="md:rounded-2xl"
           initial={{ y: '100%', opacity: 0 }}
@@ -105,7 +106,7 @@ export default function InviteModal({ event, onClose }) {
                   justifyContent: 'center',
                 }}
               >
-                <UserPlus size={17} style={{ color: '#FF5A5F' }} />
+                <UserPlus size={17} style={{ color: '#FF385C' }} />
               </div>
               <h2 style={{ fontSize: 16, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.02em' }}>
                 Invite Friends
@@ -121,9 +122,9 @@ export default function InviteModal({ event, onClose }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                backgroundColor: '#F7F7F7',
-                border: '1px solid #EBEBEB',
-                color: '#484848',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
               }}
             >
               <X size={15} />
@@ -136,11 +137,11 @@ export default function InviteModal({ event, onClose }) {
               padding: '10px 14px',
               borderRadius: 12,
               marginBottom: 18,
-              backgroundColor: '#F7F7F7',
-              border: '1px solid #EBEBEB',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #DDDDDD',
             }}
           >
-            <p style={{ fontSize: 11, color: '#B0B0B0', margin: '0 0 3px', fontWeight: 600 }}>
+            <p style={{ fontSize: 11, color: '#717171', margin: '0 0 3px', fontWeight: 600 }}>
               {event.society_name} presents
             </p>
             <p style={{ fontSize: 14, fontWeight: 700, color: '#222222', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -150,7 +151,7 @@ export default function InviteModal({ event, onClose }) {
 
           {/* Email input + chips */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>
               Select Friends / Add Email
             </label>
             <form onSubmit={handleAddEmail} style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
@@ -192,9 +193,9 @@ export default function InviteModal({ event, onClose }) {
                     borderRadius: '9999px',
                     fontSize: 12,
                     fontWeight: 600,
-                    backgroundColor: '#F0F0F0',
-                    border: '1px solid #EBEBEB',
-                    color: '#484848',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #DDDDDD',
+                    color: '#222222',
                   }}
                 >
                   <span>{em}</span>
@@ -208,8 +209,8 @@ export default function InviteModal({ event, onClose }) {
                       width: 16,
                       height: 16,
                       borderRadius: '9999px',
-                      backgroundColor: '#DDDDDD',
-                      color: '#767676',
+                      backgroundColor: '#F0F0F0',
+                      color: '#717171',
                       border: 'none',
                       cursor: 'pointer',
                       padding: 0,
@@ -224,7 +225,7 @@ export default function InviteModal({ event, onClose }) {
 
           {/* Message note */}
           <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 8 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 8 }}>
               Invitation Note
             </label>
             <textarea
@@ -271,9 +272,9 @@ export default function InviteModal({ event, onClose }) {
                 cursor: sending || sent || emails.length === 0 ? 'not-allowed' : 'pointer',
                 border: 'none',
                 transition: 'all 0.15s ease',
-                backgroundColor: sent ? '#EDFAF4' : '#FF5A5F',
+                backgroundColor: sent ? '#EDFAF4' : '#FF385C',
                 color: sent ? '#10B981' : '#FFFFFF',
-                boxShadow: sent ? 'none' : '0 2px 8px rgba(255,90,95,0.30)',
+                boxShadow: sent ? 'none' : '0 2px 8px rgba(255,56,92,0.30)',
               }}
             >
               {sending ? (

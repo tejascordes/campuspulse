@@ -14,37 +14,34 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-// CARTO Basemap API Configuration
-const apiKey = import.meta.env.VITE_CARTO_API_KEY
-const tileUrl = apiKey && apiKey !== 'your_carto_api_key_here'
-  ? `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${apiKey}`
-  : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+// Dark tile layer — Airbnb Explore keeps dark map for high contrast
+const DARK_TILE = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
 
 const CATEGORIES = ['Society Hub', 'Recreational', 'Academic', 'Food']
 
 function PinMarker({ pin, isSelected, onClick }) {
   return (
     <>
-      {/* Outer subtle ring */}
+      {/* Outer halo */}
       <CircleMarker
         center={[pin.latitude, pin.longitude]}
-        radius={isSelected ? 18 : 12}
+        radius={isSelected ? 20 : 13}
         pathOptions={{
-          color: isSelected ? '#38bdf8' : '#71717a',
-          fillColor: isSelected ? '#38bdf8' : '#71717a',
-          fillOpacity: isSelected ? 0.2 : 0.08,
+          color: isSelected ? '#FF385C' : '#FFFFFF',
+          fillColor: isSelected ? '#FF385C' : '#FFFFFF',
+          fillOpacity: isSelected ? 0.18 : 0.1,
           weight: isSelected ? 2 : 1,
-          opacity: isSelected ? 0.9 : 0.4,
+          opacity: isSelected ? 0.85 : 0.4,
         }}
         eventHandlers={{ click: () => onClick(pin) }}
       />
       {/* Inner dot */}
       <CircleMarker
         center={[pin.latitude, pin.longitude]}
-        radius={isSelected ? 7 : 5}
+        radius={isSelected ? 8 : 5}
         pathOptions={{
-          color: '#ffffff',
-          fillColor: isSelected ? '#38bdf8' : '#121215',
+          color: '#FFFFFF',
+          fillColor: isSelected ? '#FF385C' : '#FFFFFF',
           fillOpacity: 1,
           weight: 2,
           opacity: 1,
@@ -55,7 +52,7 @@ function PinMarker({ pin, isSelected, onClick }) {
   )
 }
 
-export default function MapView({ token }) {
+export default function MapView({ token: _token }) {
   const [pins, setPins] = useState([])
   const [selectedPin, setSelectedPin] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -80,33 +77,102 @@ export default function MapView({ token }) {
   const handleCloseSheet = () => setSelectedPin(null)
 
   return (
-    <div className="h-full w-full bg-[#09090b] flex flex-col overflow-hidden">
-      <div className="flex-1 max-w-xl mx-auto md:max-w-4xl w-full h-full md:grid md:grid-cols-12 md:gap-4 md:py-4 md:px-2 relative">
-        {/* Left Column on Desktop / Full on Mobile: Map Container */}
-        <div className="h-full relative md:col-span-8 rounded-none md:rounded-2xl overflow-hidden md:border md:border-[#27272a] bg-[#09090b]">
-          {/* Mobile Search overlay */}
-          <div className="absolute top-6 left-4 right-4 z-30 md:hidden">
-            <div
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-[#27272a] shadow-lg"
-            >
-              <Search size={15} className="text-zinc-500 flex-shrink-0" />
+    <div className="h-full w-full flex flex-col overflow-hidden bg-white" style={{ backgroundColor: '#FFFFFF' }}>
+      <div
+        style={{
+          flex: 1,
+          maxWidth: '56rem',
+          margin: '0 auto',
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+        }}
+        className="md:grid md:grid-cols-12 md:gap-4 md:py-4 md:px-2"
+      >
+        {/* Map Container */}
+        <div
+          className="md:col-span-8 md:rounded-2xl md:border"
+          style={{
+            height: '100%',
+            position: 'relative',
+            overflow: 'hidden',
+            borderColor: '#DDDDDD',
+          }}
+        >
+          {/* Mobile floating search pill */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 16,
+              left: 12,
+              right: 12,
+              zIndex: 30,
+            }}
+            className="md:hidden"
+          >
+            <div className="search-pill" style={{ pointerEvents: 'auto', backgroundColor: '#FFFFFF', border: '1px solid #DDDDDD' }}>
+              <div
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: '9999px',
+                  backgroundColor: '#FF385C',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Search size={14} style={{ color: '#FFFFFF' }} />
+              </div>
               <input
-                className="bg-transparent flex-1 text-xs outline-none text-zinc-100 placeholder:text-zinc-500"
-                placeholder="Search campus buildings, hubs..."
+                style={{
+                  background: 'transparent',
+                  flex: 1,
+                  outline: 'none',
+                  fontSize: 13,
+                  color: '#222222',
+                  fontFamily: 'inherit',
+                  fontWeight: 500,
+                }}
+                placeholder="Search campus buildings, hubs…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Category Legend (Mobile floating) */}
-          <div className="absolute top-20 left-4 z-30 flex flex-col gap-1.5 md:hidden">
+          {/* Mobile category legend (floating) */}
+          <div
+            className="md:hidden"
+            style={{
+              position: 'absolute',
+              top: 74,
+              left: 12,
+              zIndex: 30,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 5,
+            }}
+          >
             {CATEGORIES.map((cat) => (
               <div
                 key={cat}
-                className="flex items-center gap-2 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#121215] border border-[#27272a] text-zinc-400"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 10px',
+                  borderRadius: '9999px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #DDDDDD',
+                  color: '#222222',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                }}
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+                <div style={{ width: 6, height: 6, borderRadius: '9999px', backgroundColor: '#FF385C' }} />
                 <span>{cat}</span>
               </div>
             ))}
@@ -122,7 +188,7 @@ export default function MapView({ token }) {
             >
               <TileLayer
                 attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                url={tileUrl}
+                url={DARK_TILE}
               />
               {filteredPins.map((pin) => (
                 <PinMarker
@@ -137,76 +203,127 @@ export default function MapView({ token }) {
 
           {loading && (
             <div
-              className="absolute inset-0 flex items-center justify-center bg-[#09090b]"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#FFFFFF',
+              }}
             >
-              <div className="text-center">
-                <Loader2 size={24} className="animate-spin text-zinc-500 mx-auto mb-2" />
-                <p className="text-xs text-zinc-500">Loading campus map...</p>
+              <div style={{ textAlign: 'center' }}>
+                <Loader2 size={24} className="animate-spin" style={{ color: '#FF385C', margin: '0 auto 8px' }} />
+                <p style={{ fontSize: 13, color: '#717171' }}>Loading campus map…</p>
               </div>
             </div>
           )}
 
           {/* Mobile Bottom Sheet */}
-          <div className="absolute inset-0 z-20 pointer-events-none md:hidden">
-            <div
-              className="absolute inset-0 pointer-events-auto"
-              style={{ display: selectedPin ? 'block' : 'none' }}
-            >
+          <div
+            className="md:hidden"
+            style={{ position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none' }}
+          >
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto', display: selectedPin ? 'block' : 'none' }}>
               <BottomSheet pin={selectedPin} onClose={handleCloseSheet} />
             </div>
           </div>
         </div>
 
-        {/* Desktop Sidebar Column: Interactive Location Directory */}
-        <div className="hidden md:flex md:col-span-4 flex-col gap-3.5 h-full overflow-hidden">
-          {/* Desktop Search */}
-          <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#121215] border border-[#27272a]">
-            <Search size={15} className="text-zinc-500 flex-shrink-0" />
+        {/* Desktop Sidebar */}
+        <div
+          className="hidden md:flex md:col-span-4 flex-col gap-3"
+          style={{ height: '100%', overflow: 'hidden' }}
+        >
+          {/* Desktop search pill */}
+          <div className="search-pill" style={{ backgroundColor: '#FFFFFF', border: '1px solid #DDDDDD' }}>
+            <div
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: '9999px',
+                backgroundColor: '#FF385C',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Search size={14} style={{ color: '#FFFFFF' }} />
+            </div>
             <input
-              className="bg-transparent flex-1 text-xs outline-none text-zinc-100 placeholder:text-zinc-500"
-              placeholder="Search campus buildings..."
+              style={{
+                background: 'transparent',
+                flex: 1,
+                outline: 'none',
+                fontSize: 13,
+                color: '#222222',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+              }}
+              placeholder="Search campus buildings…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
-          {/* Desktop Category Filters */}
-          <div className="flex flex-wrap gap-1.5">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSearchQuery(searchQuery === cat ? '' : cat)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-                  searchQuery === cat
-                    ? 'bg-zinc-100 text-zinc-950 border-zinc-100 font-semibold'
-                    : 'bg-[#121215] text-zinc-400 border-[#27272a] hover:border-[#3f3f46]'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          {/* Desktop category filter chips */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {CATEGORIES.map((cat) => {
+              const isActive = searchQuery === cat
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSearchQuery(searchQuery === cat ? '' : cat)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '9999px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    border: isActive ? 'none' : '1px solid #DDDDDD',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    backgroundColor: isActive ? '#000000' : '#FFFFFF',
+                    color: isActive ? '#FFFFFF' : '#222222',
+                    boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.14)' : '0 1px 4px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  {cat}
+                </button>
+              )
+            })}
           </div>
 
-          {/* Pins List */}
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          {/* Location cards */}
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 2 }}>
             {filteredPins.map((pin) => {
               const isSelected = selectedPin?.id === pin.id
               return (
                 <div
                   key={pin.id}
                   onClick={() => setSelectedPin(pin)}
-                  className={`p-3 rounded-xl cursor-pointer transition-all border ${
-                    isSelected
-                      ? 'bg-[#18181b] border-sky-500/60 shadow-md'
-                      : 'bg-[#121215] border-[#27272a] hover:border-[#3f3f46]'
-                  }`}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    backgroundColor: isSelected ? '#FFF5F5' : '#FFFFFF',
+                    border: isSelected ? '1.5px solid #FF385C' : '1px solid #DDDDDD',
+                    boxShadow: isSelected ? '0 2px 12px rgba(255,56,92,0.14)' : '0 1px 4px rgba(0,0,0,0.06)',
+                  }}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-medium text-zinc-400">{pin.category}</span>
-                    <span className="text-[11px] font-semibold text-amber-400">★ {pin.rating}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {pin.category}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#F59E0B' }}>★ {pin.rating}</span>
                   </div>
-                  <h4 className="text-xs font-bold text-zinc-100 truncate">{pin.name}</h4>
-                  <p className="text-[11px] text-zinc-500 truncate mt-0.5">{pin.description}</p>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: '#222222', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {pin.name}
+                  </h4>
+                  <p style={{ fontSize: 11, color: '#717171', margin: '3px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {pin.description}
+                  </p>
                 </div>
               )
             })}

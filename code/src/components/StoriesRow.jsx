@@ -21,7 +21,7 @@ export default function StoriesRow({ onSocietyClick }) {
   }, [])
 
   return (
-    <div className="w-full overflow-x-auto no-scrollbar py-3 flex items-center gap-4 select-none">
+    <div className="w-full overflow-x-auto no-scrollbar py-3 flex items-center gap-4 select-none bg-white">
       {/* Today / Highlights Bubble */}
       <button
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0, cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }}
@@ -37,8 +37,8 @@ export default function StoriesRow({ onSocietyClick }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%)',
-              boxShadow: '0 2px 10px rgba(255,90,95,0.30)',
+              backgroundColor: '#FF385C',
+              boxShadow: '0 2px 10px rgba(255,56,92,0.30)',
               transition: 'box-shadow 0.2s ease',
             }}
           >
@@ -52,20 +52,20 @@ export default function StoriesRow({ onSocietyClick }) {
               width: 12,
               height: 12,
               borderRadius: '9999px',
-              backgroundColor: '#FF5A5F',
-              border: '2px solid #F7F7F7',
+              backgroundColor: '#FF385C',
+              border: '2px solid #FFFFFF',
             }}
           />
         </div>
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#484848' }}>Today</span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#222222' }}>Today</span>
       </button>
 
-      {/* Society Story Bubbles */}
+      {/* Society Story Bubbles — Single coral ring border */}
       {loading
         ? Array.from({ length: 5 }).map((_, i) => (
             <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0 }} className="animate-pulse">
-              <div style={{ width: 56, height: 56, borderRadius: '9999px', backgroundColor: '#EBEBEB' }} />
-              <div style={{ width: 32, height: 8, borderRadius: 4, backgroundColor: '#EBEBEB' }} />
+              <div style={{ width: 56, height: 56, borderRadius: '9999px', backgroundColor: '#F0F0F0' }} />
+              <div style={{ width: 32, height: 8, borderRadius: 4, backgroundColor: '#F0F0F0' }} />
             </div>
           ))
         : societies.map((soc) => {
@@ -89,10 +89,11 @@ export default function StoriesRow({ onSocietyClick }) {
                       fontWeight: 700,
                       fontSize: 13,
                       letterSpacing: '0.02em',
-                      backgroundColor: hasEvents ? '#FFF5F5' : '#F7F7F7',
-                      border: hasEvents ? '2.5px solid #FF5A5F' : '2px solid #DDDDDD',
-                      color: hasEvents ? '#FF5A5F' : '#767676',
+                      backgroundColor: '#FFFFFF',
+                      border: hasEvents ? '2px solid #FF385C' : '1px solid #DDDDDD',
+                      color: hasEvents ? '#FF385C' : '#717171',
                       transition: 'all 0.15s ease',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                     }}
                   >
                     {initials}
@@ -111,9 +112,9 @@ export default function StoriesRow({ onSocietyClick }) {
                         justifyContent: 'center',
                         fontSize: 9,
                         fontWeight: 800,
-                        backgroundColor: '#FF5A5F',
+                        backgroundColor: '#FF385C',
                         color: '#FFFFFF',
-                        border: '2px solid #F7F7F7',
+                        border: '2px solid #FFFFFF',
                         padding: '0 3px',
                       }}
                     >
@@ -130,7 +131,7 @@ export default function StoriesRow({ onSocietyClick }) {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     textAlign: 'center',
-                    color: '#484848',
+                    color: '#222222',
                   }}
                 >
                   {soc.name}

@@ -45,8 +45,8 @@ export default function LoginView({ onLogin }) {
 
   return (
     <div
-      className="h-full w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
-      style={{ backgroundColor: '#F7F7F7' }}
+      className="h-full w-full flex flex-col items-center justify-center px-4 relative overflow-hidden bg-white"
+      style={{ backgroundColor: '#FFFFFF' }}
     >
       {/* Subtle background decoration */}
       <div
@@ -57,7 +57,7 @@ export default function LoginView({ onLogin }) {
           width: 360,
           height: 360,
           borderRadius: '9999px',
-          background: 'radial-gradient(circle, rgba(255,90,95,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,56,92,0.06) 0%, transparent 70%)',
           pointerEvents: 'none',
         }}
       />
@@ -65,18 +65,17 @@ export default function LoginView({ onLogin }) {
       {/* Logo */}
       <div className="text-center mb-8">
         <div style={{ marginBottom: 8 }}>
-          {/* Airbnb-style belo icon */}
           <div
             style={{
               width: 52,
               height: 52,
               borderRadius: '9999px',
-              background: 'linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%)',
+              backgroundColor: '#FF385C',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 12px',
-              boxShadow: '0 4px 16px rgba(255,90,95,0.35)',
+              boxShadow: '0 4px 16px rgba(255,56,92,0.35)',
             }}
           >
             <span style={{ color: '#FFFFFF', fontSize: 22, fontWeight: 900 }}>⌘</span>
@@ -93,7 +92,7 @@ export default function LoginView({ onLogin }) {
           <span className="logo-gradient-text">Campus</span>
           <span style={{ color: '#222222' }}>Pulse</span>
         </h1>
-        <p style={{ fontSize: 13, color: '#767676', marginTop: 6 }}>
+        <p style={{ fontSize: 13, color: '#717171', marginTop: 6 }}>
           Thapar Institute Campus Social Layer
         </p>
       </div>
@@ -105,16 +104,16 @@ export default function LoginView({ onLogin }) {
           maxWidth: 400,
           backgroundColor: '#FFFFFF',
           borderRadius: 16,
-          boxShadow: '0 4px 32px rgba(0,0,0,0.10)',
+          boxShadow: '0 4px 32px rgba(0,0,0,0.08)',
           padding: '28px 28px 24px',
-          border: '1px solid #EBEBEB',
+          border: '1px solid #DDDDDD',
         }}
       >
-        {/* Tab toggle — Airbnb underline style */}
+        {/* Tab toggle — Airbnb 2px solid #222222 underline style */}
         <div
           style={{
             display: 'flex',
-            borderBottom: '1px solid #EBEBEB',
+            borderBottom: '1px solid #DDDDDD',
             marginBottom: 22,
           }}
         >
@@ -130,10 +129,10 @@ export default function LoginView({ onLogin }) {
                 paddingBottom: 12,
                 fontSize: 14,
                 fontWeight: mode === m ? 700 : 500,
-                color: mode === m ? '#222222' : '#767676',
+                color: mode === m ? '#222222' : '#717171',
                 background: 'none',
                 border: 'none',
-                borderBottom: mode === m ? '2px solid #FF5A5F' : '2px solid transparent',
+                borderBottom: mode === m ? '2px solid #222222' : '2px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
                 marginBottom: -1,
@@ -190,7 +189,7 @@ export default function LoginView({ onLogin }) {
                 right: 14,
                 top: '50%',
                 transform: 'translateY(-50%)',
-                color: '#B0B0B0',
+                color: '#717171',
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
@@ -209,9 +208,9 @@ export default function LoginView({ onLogin }) {
                   fontSize: 12,
                   padding: '10px 14px',
                   borderRadius: 8,
-                  color: '#FF5A5F',
-                  backgroundColor: 'rgba(255,90,95,0.07)',
-                  border: '1px solid rgba(255,90,95,0.18)',
+                  color: '#FF385C',
+                  backgroundColor: 'rgba(255,56,92,0.07)',
+                  border: '1px solid rgba(255,56,92,0.18)',
                   margin: 0,
                 }}
                 initial={{ opacity: 0, height: 0 }}
@@ -240,7 +239,7 @@ export default function LoginView({ onLogin }) {
         </form>
 
         {/* Terms note */}
-        <p style={{ fontSize: 11, color: '#B0B0B0', textAlign: 'center', marginTop: 16, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 11, color: '#717171', textAlign: 'center', marginTop: 16, lineHeight: 1.5 }}>
           By continuing, you agree to CampusPulse&rsquo;s Terms of Service
         </p>
       </div>

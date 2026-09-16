@@ -62,7 +62,13 @@ export default function PostCard({ post }) {
   return (
     <div
       className="surface-card surface-card-hover"
-      style={{ marginBottom: 14, overflow: 'hidden', cursor: 'pointer', border: '1px solid #EBEBEB' }}
+      style={{
+        marginBottom: 14,
+        overflow: 'hidden',
+        cursor: 'pointer',
+        border: '1px solid #DDDDDD',
+        backgroundColor: '#FFFFFF',
+      }}
     >
       {/* Hero Banner — gradient photo stand-in */}
       <div
@@ -83,7 +89,7 @@ export default function PostCard({ post }) {
             borderRadius: '9999px',
             backgroundColor: 'rgba(255,255,255,0.25)',
             backdropFilter: 'blur(6px)',
-            border: '2px solid rgba(255,255,255,0.5)',
+            border: '2px solid rgba(255,255,255,0.7)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -102,15 +108,15 @@ export default function PostCard({ post }) {
       </div>
 
       {/* Card body */}
-      <div style={{ padding: '24px 14px 14px' }}>
+      <div style={{ padding: '24px 14px 14px', backgroundColor: '#FFFFFF' }}>
         {/* Header: Society + time + category badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: '#222222' }}>
               {post.society_name}
             </span>
-            <span style={{ fontSize: 11, color: '#B0B0B0' }}>·</span>
-            <span style={{ fontSize: 11, color: '#B0B0B0' }}>
+            <span style={{ fontSize: 11, color: '#717171' }}>·</span>
+            <span style={{ fontSize: 11, color: '#717171' }}>
               {timeAgo(post.created_at)}
             </span>
           </div>
@@ -121,7 +127,7 @@ export default function PostCard({ post }) {
         <h3 style={{ fontSize: 15, fontWeight: 700, color: '#222222', margin: '0 0 6px', lineHeight: 1.35, letterSpacing: '-0.01em' }}>
           {post.title}
         </h3>
-        <p style={{ fontSize: 13, color: '#767676', lineHeight: 1.55, margin: '0 0 14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <p style={{ fontSize: 13, color: '#717171', lineHeight: 1.55, margin: '0 0 14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {post.description}
         </p>
 
@@ -132,7 +138,7 @@ export default function PostCard({ post }) {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingTop: 12,
-            borderTop: '1px solid #F0F0F0',
+            borderTop: '1px solid #DDDDDD',
           }}
         >
           <button
@@ -147,17 +153,17 @@ export default function PostCard({ post }) {
               fontWeight: 600,
               cursor: voted ? 'default' : 'pointer',
               transition: 'all 0.15s ease',
-              backgroundColor: voted ? '#FF5A5F' : '#FFFFFF',
-              color: voted ? '#FFFFFF' : '#484848',
-              border: voted ? 'none' : '1.5px solid #DDDDDD',
-              boxShadow: voted ? '0 2px 8px rgba(255,90,95,0.30)' : '0 1px 4px rgba(0,0,0,0.06)',
+              backgroundColor: voted ? '#FF385C' : '#FFFFFF',
+              color: voted ? '#FFFFFF' : '#222222',
+              border: voted ? 'none' : '1px solid #DDDDDD',
+              boxShadow: voted ? '0 2px 8px rgba(255,56,92,0.30)' : '0 1px 4px rgba(0,0,0,0.06)',
             }}
           >
             <ChevronUp size={14} strokeWidth={voted ? 2.5 : 2} />
             <span>{upvotes}</span>
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#B0B0B0', fontSize: 13 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#717171', fontSize: 13 }}>
             <MessageSquare size={14} />
             <span>{post.comment_count ?? 0}</span>
           </div>

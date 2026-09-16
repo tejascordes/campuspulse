@@ -19,7 +19,7 @@ import PostCard from './PostCard.jsx'
 function getSocietyGradient(name = '') {
   const gradients = [
     'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    'linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%)',
+    'linear-gradient(135deg, #FF385C 0%, #E0314F 100%)',
     'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
     'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)',
     'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
@@ -97,6 +97,7 @@ export default function SocietyHub({ societyName, onClose }) {
             borderRadius: '20px 20px 0 0',
             backgroundColor: '#FFFFFF',
             boxShadow: '0 -8px 48px rgba(0,0,0,0.20)',
+            border: '1px solid #DDDDDD',
           }}
           className="md:rounded-2xl md:h-[86vh]"
           initial={{ y: '100%', opacity: 0 }}
@@ -127,7 +128,7 @@ export default function SocietyHub({ societyName, onClose }) {
                   cursor: 'pointer',
                   backgroundColor: 'rgba(255,255,255,0.3)',
                   backdropFilter: 'blur(8px)',
-                  border: '1.5px solid rgba(255,255,255,0.5)',
+                  border: '1.5px solid rgba(255,255,255,0.7)',
                   color: '#FFFFFF',
                 }}
               >
@@ -150,7 +151,7 @@ export default function SocietyHub({ societyName, onClose }) {
                   color: '#FFFFFF',
                   backgroundColor: 'rgba(255,255,255,0.22)',
                   backdropFilter: 'blur(8px)',
-                  border: '2.5px solid rgba(255,255,255,0.5)',
+                  border: '2.5px solid rgba(255,255,255,0.7)',
                   flexShrink: 0,
                   letterSpacing: '-0.01em',
                 }}
@@ -184,7 +185,7 @@ export default function SocietyHub({ societyName, onClose }) {
                     {society?.category || 'Campus Society'}
                   </span>
                   {society?.follower_count && (
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
                       {society.follower_count} followers
                     </span>
                   )}
@@ -227,11 +228,11 @@ export default function SocietyHub({ societyName, onClose }) {
             </div>
           </div>
 
-          {/* Tabs — Airbnb underline style */}
+          {/* Tabs — 2px solid #222222 underline style */}
           <div
             style={{
               display: 'flex',
-              borderBottom: '1px solid #EBEBEB',
+              borderBottom: '1px solid #DDDDDD',
               backgroundColor: '#FFFFFF',
               flexShrink: 0,
               padding: '0 20px',
@@ -253,10 +254,10 @@ export default function SocietyHub({ societyName, onClose }) {
                     padding: '12px 4px',
                     fontSize: 13,
                     fontWeight: isActive ? 700 : 500,
-                    color: isActive ? '#222222' : '#767676',
+                    color: isActive ? '#222222' : '#717171',
                     background: 'none',
                     border: 'none',
-                    borderBottom: isActive ? '2px solid #FF5A5F' : '2px solid transparent',
+                    borderBottom: isActive ? '2px solid #222222' : '2px solid transparent',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     marginBottom: -1,
@@ -271,8 +272,8 @@ export default function SocietyHub({ societyName, onClose }) {
                         padding: '1px 6px',
                         borderRadius: '9999px',
                         fontWeight: 700,
-                        backgroundColor: isActive ? '#FF5A5F' : '#F0F0F0',
-                        color: isActive ? '#FFFFFF' : '#767676',
+                        backgroundColor: isActive ? '#000000' : '#F0F0F0',
+                        color: isActive ? '#FFFFFF' : '#717171',
                       }}
                     >
                       {tab.count}
@@ -284,11 +285,11 @@ export default function SocietyHub({ societyName, onClose }) {
           </div>
 
           {/* Content body */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px', backgroundColor: '#F7F7F7' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px', backgroundColor: '#FFFFFF' }}>
             {loading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 200, gap: 10 }}>
-                <Loader2 size={24} className="animate-spin" style={{ color: '#B0B0B0' }} />
-                <p style={{ fontSize: 13, color: '#B0B0B0' }}>Loading society hub…</p>
+                <Loader2 size={24} className="animate-spin" style={{ color: '#FF385C' }} />
+                <p style={{ fontSize: 13, color: '#717171' }}>Loading society hub…</p>
               </div>
             ) : activeTab === 'events' ? (
               events.length === 0 ? (
@@ -302,11 +303,12 @@ export default function SocietyHub({ societyName, onClose }) {
                     height: 200,
                     textAlign: 'center',
                     gap: 6,
-                    border: '1px solid #EBEBEB',
+                    border: '1px solid #DDDDDD',
+                    backgroundColor: '#FFFFFF',
                   }}
                 >
                   <p style={{ fontSize: 14, fontWeight: 700, color: '#222222' }}>No upcoming events</p>
-                  <p style={{ fontSize: 12, color: '#B0B0B0' }}>Check back later for newly announced events.</p>
+                  <p style={{ fontSize: 12, color: '#717171' }}>Check back later for newly announced events.</p>
                 </div>
               ) : (
                 events.map((ev) => <EventCard key={ev.id} event={ev} />)
@@ -323,11 +325,12 @@ export default function SocietyHub({ societyName, onClose }) {
                     height: 200,
                     textAlign: 'center',
                     gap: 6,
-                    border: '1px solid #EBEBEB',
+                    border: '1px solid #DDDDDD',
+                    backgroundColor: '#FFFFFF',
                   }}
                 >
                   <p style={{ fontSize: 14, fontWeight: 700, color: '#222222' }}>No posts yet</p>
-                  <p style={{ fontSize: 12, color: '#B0B0B0' }}>This society hasn&rsquo;t shared any updates.</p>
+                  <p style={{ fontSize: 12, color: '#717171' }}>This society hasn&rsquo;t shared any updates.</p>
                 </div>
               ) : (
                 posts.map((p) => <PostCard key={p.id} post={p} />)
@@ -335,25 +338,25 @@ export default function SocietyHub({ societyName, onClose }) {
             ) : (
               /* About tab */
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div className="surface-card" style={{ padding: 18, border: '1px solid #EBEBEB' }}>
-                  <h4 style={{ fontSize: 11, fontWeight: 800, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
+                <div className="surface-card" style={{ padding: 18, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}>
+                  <h4 style={{ fontSize: 11, fontWeight: 800, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
                     About Society
                   </h4>
-                  <p style={{ fontSize: 14, color: '#484848', lineHeight: 1.6, margin: 0 }}>
+                  <p style={{ fontSize: 14, color: '#222222', lineHeight: 1.6, margin: 0 }}>
                     {society?.description || 'Official student society at Thapar Institute.'}
                   </p>
                 </div>
 
-                <div className="surface-card" style={{ padding: 18, border: '1px solid #EBEBEB' }}>
+                <div className="surface-card" style={{ padding: 18, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}>
                   {society?.hub_location && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, fontSize: 13, color: '#484848' }}>
-                      <MapPin size={15} style={{ color: '#B0B0B0', flexShrink: 0 }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, fontSize: 13, color: '#222222' }}>
+                      <MapPin size={15} style={{ color: '#717171', flexShrink: 0 }} />
                       <span>{society.hub_location}</span>
                     </div>
                   )}
                   {society?.meeting_schedule && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#484848' }}>
-                      <Clock size={15} style={{ color: '#B0B0B0', flexShrink: 0 }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#222222' }}>
+                      <Clock size={15} style={{ color: '#717171', flexShrink: 0 }} />
                       <span>{society.meeting_schedule}</span>
                     </div>
                   )}

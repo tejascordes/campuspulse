@@ -8,40 +8,39 @@ import {
   Clock,
   UserPlus,
   CheckCircle2,
-  Bookmark,
 } from 'lucide-react'
 import { eventsApi } from '../api.js'
 import CalendarSaveModal from './CalendarSaveModal.jsx'
 import InviteModal from './InviteModal.jsx'
 
-export default function EventCard({
-  event,
-  onUpdate,
-  isSaved,
-  onToggleSave,
-  savedEvents,
-  onToggleSaveEvent,
-}) {
+/** Maps a category to a CSS class for the hero gradient */
+function getHeroClass(category = '') {
+  const c = category.toLowerCase()
+  if (c.includes('tech') && !c.includes('non')) return 'hero-gradient-tech'
+  if (c.includes('non')) return 'hero-gradient-nontech'
+  if (c.includes('hack')) return 'hero-gradient-hackathon'
+  if (c.includes('prize')) return 'hero-gradient-prizes'
+  if (c.includes('refresh')) return 'hero-gradient-refreshments'
+  return 'hero-gradient-default'
+}
+
+function getBadgeClass(category = '') {
+  const c = category.toLowerCase()
+  if (c.includes('tech') && !c.includes('non')) return 'category-badge category-badge-tech'
+  if (c.includes('non')) return 'category-badge category-badge-nontech'
+  if (c.includes('hack')) return 'category-badge category-badge-hackathon'
+  if (c.includes('prize')) return 'category-badge category-badge-prizes'
+  if (c.includes('refresh')) return 'category-badge category-badge-refreshments'
+  return 'category-badge category-badge-default'
+}
+
+export default function EventCard({ event, onUpdate }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isRegistered, setIsRegistered] = useState(event.is_registered || false)
   const [registeredCount, setRegisteredCount] = useState(event.registered_count || 0)
   const [isRegistering, setIsRegistering] = useState(false)
   const [showCalendarModal, setShowCalendarModal] = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
-
-  const isBookmarked =
-    isSaved !== undefined
-      ? isSaved
-      : Boolean(savedEvents?.some((e) => e.id === event.id))
-
-  const handleToggleBookmark = (e) => {
-    e.stopPropagation()
-    if (onToggleSave) {
-      onToggleSave(event)
-    } else if (onToggleSaveEvent) {
-      onToggleSaveEvent(event)
-    }
-  }
 
   const dateObj = new Date(event.event_date)
   const dayNum = dateObj.getDate()
@@ -50,6 +49,7 @@ export default function EventCard({
 
   const maxCapacity = event.max_capacity || 100
   const capacityPercent = Math.min(100, Math.round((registeredCount / maxCapacity) * 100))
+  const isAlmostFull = capacityPercent >= 90
 
   const handleToggleRegistration = async () => {
     setIsRegistering(true)
@@ -81,210 +81,297 @@ export default function EventCard({
     }
   }
 
+  const heroClass = getHeroClass(event.category)
+  const badgeClass = getBadgeClass(event.category)
+
   return (
     <>
       <div
-        className="p-4 mb-3.5 rounded-xl transition-colors cursor-pointer bg-[#121215] border border-[#27272a] hover:border-[#3f3f46]"
+        className="surface-card surface-card-hover"
+        style={{
+          marginBottom: 14,
+          overflow: 'hidden',
+          border: '1px solid #DDDDDD',
+          backgroundColor: '#FFFFFF',
+        }}
       >
-        {/* Top Section: Date box & Details */}
-        <div className="flex items-start gap-3 mb-3">
-          {/* Subtle Date Box */}
+        {/* Hero Banner */}
+        <div
+          className={heroClass}
+          style={{
+            height: 80,
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'flex-end',
+            padding: '0 14px 14px',
+          }}
+        >
+          {/* Floating Date Badge — Airbnb event date style */}
           <div
-            className="flex flex-col items-center justify-center w-11 h-12 rounded-lg flex-shrink-0 bg-[#18181b] border border-[#27272a]"
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 14,
+              backgroundColor: '#FFFFFF',
+              borderRadius: 10,
+              padding: '4px 10px',
+              textAlign: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.14)',
+              minWidth: 44,
+              border: '1px solid #DDDDDD',
+            }}
           >
-            <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+            <div style={{ fontSize: 9, fontWeight: 700, color: '#FF385C', letterSpacing: '0.08em' }}>
               {monthStr}
-            </span>
-            <span className="text-base font-bold text-zinc-100 leading-none mt-0.5">
-              {dayNum}
-            </span>
-          </div>
-
-          {/* Title, Society & Neutral Badges */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-              <span className="text-xs font-semibold text-zinc-200">
-                {event.society_name}
-              </span>
-              <span
-                className="text-[11px] font-medium px-2 py-0.5 rounded-md border border-[#27272a] text-zinc-400 bg-transparent"
-              >
-                {event.category}
-              </span>
             </div>
-
-            <h3 className="text-sm font-semibold text-zinc-100 leading-snug">
-              {event.title}
-            </h3>
-            {event.tagline && (
-              <p className="text-xs text-zinc-400 mt-0.5">
-                {event.tagline}
-              </p>
-            )}
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#222222', lineHeight: 1.1 }}>
+              {dayNum}
+            </div>
           </div>
         </div>
 
-        {/* Venue & Time metadata */}
-        <div className="flex items-center gap-3 text-xs text-zinc-400 mb-3 flex-wrap">
-          {event.venue && (
-            <div className="flex items-center gap-1">
-              <MapPin size={13} className="text-zinc-500" />
-              <span>{event.venue}</span>
+        {/* Card body */}
+        <div style={{ padding: '14px 14px 14px', backgroundColor: '#FFFFFF' }}>
+          {/* Society + Category badge */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {event.society_name}
+            </span>
+            <span className={badgeClass}>{event.category}</span>
+          </div>
+
+          {/* Event title */}
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#222222', margin: '0 0 4px', lineHeight: 1.3, letterSpacing: '-0.02em' }}>
+            {event.title}
+          </h3>
+          {event.tagline && (
+            <p style={{ fontSize: 13, color: '#717171', margin: '0 0 10px' }}>
+              {event.tagline}
+            </p>
+          )}
+
+          {/* Venue & time */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, color: '#717171', marginBottom: 12, flexWrap: 'wrap' }}>
+            {event.venue && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <MapPin size={13} style={{ color: '#717171' }} />
+                <span>{event.venue}</span>
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Clock size={13} style={{ color: '#717171' }} />
+              <span>{timeStr}</span>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p style={{ fontSize: 13, color: '#222222', lineHeight: 1.55, margin: '0 0 14px' }}>
+            {event.description}
+          </p>
+
+          {/* Capacity Bar */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 6, fontWeight: 600 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#717171' }}>
+                <Users size={11} style={{ color: '#717171' }} />
+                {registeredCount} / {maxCapacity} registered
+              </span>
+              <span style={{ color: isAlmostFull ? '#FF385C' : '#717171', fontWeight: 700 }}>
+                {capacityPercent}% full
+              </span>
+            </div>
+            <div
+              style={{
+                width: '100%',
+                height: 5,
+                borderRadius: '9999px',
+                backgroundColor: '#F0F0F0',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  borderRadius: '9999px',
+                  backgroundColor: '#FF385C',
+                  width: `${capacityPercent}%`,
+                  transition: 'width 0.3s ease',
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Itinerary accordion */}
+          {event.itinerary && event.itinerary.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #DDDDDD',
+                }}
+              >
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#222222' }}>
+                  Itinerary &amp; Timeline ({event.itinerary.length} items)
+                </span>
+                <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <ChevronDown size={14} style={{ color: '#717171' }} />
+                </motion.div>
+              </button>
+
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div
+                      style={{
+                        marginTop: 6,
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        border: '1px solid #DDDDDD',
+                        backgroundColor: '#FFFFFF',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                      }}
+                    >
+                      {event.itinerary.map((item, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 12 }}>
+                          <span
+                            style={{
+                              fontFamily: 'ui-monospace, monospace',
+                              fontSize: 11,
+                              padding: '2px 8px',
+                              borderRadius: 6,
+                              color: '#FF385C',
+                              backgroundColor: '#FFF5F5',
+                              flexShrink: 0,
+                              fontWeight: 600,
+                              border: '1px solid #FFEBEF',
+                            }}
+                          >
+                            {item.time}
+                          </span>
+                          <span style={{ color: '#222222', lineHeight: 1.4 }}>{item.activity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
-          <div className="flex items-center gap-1">
-            <Clock size={13} className="text-zinc-500" />
-            <span>{timeStr}</span>
-          </div>
-        </div>
 
-        {/* Description */}
-        <p className="text-xs text-zinc-400 leading-relaxed mb-3">
-          {event.description}
-        </p>
-
-        {/* Friends Attending Badge */}
-        {event.friends_attending && event.friends_attending.length > 0 && (
-          <div className="flex items-center gap-2 mb-3.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/80 border border-[#27272a] text-[11px] text-zinc-300">
-            <Users size={12} className="text-zinc-400 flex-shrink-0" />
-            <span>
-              <strong className="text-zinc-200 font-semibold">
-                {event.friends_attending.slice(0, 2).join(', ')}
-                {event.friends_attending.length > 2
-                  ? ` +${event.friends_attending.length - 2} more`
-                  : ''}
-              </strong>{' '}
-              {event.friends_attending.length === 1 ? 'is going' : 'are going'}
-            </span>
-          </div>
-        )}
-
-        {/* Capacity Bar */}
-        <div className="mb-3.5">
-          <div className="flex justify-between text-[11px] text-zinc-400 mb-1 font-medium">
-            <span className="flex items-center gap-1">
-              <Users size={12} className="text-zinc-500" /> {registeredCount} / {maxCapacity} Registered
-            </span>
-            <span className={capacityPercent >= 90 ? 'text-amber-400 font-semibold' : 'text-zinc-400'}>
-              {capacityPercent}% full
-            </span>
-          </div>
+          {/* Action Buttons */}
           <div
-            className="w-full h-1.5 rounded-full overflow-hidden bg-[#18181b] border border-[#27272a]"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              paddingTop: 12,
+              borderTop: '1px solid #DDDDDD',
+            }}
           >
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                capacityPercent >= 90 ? 'bg-amber-500' : 'bg-zinc-300'
-              }`}
-              style={{ width: `${capacityPercent}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Expandable Itinerary Accordion */}
-        {event.itinerary && event.itinerary.length > 0 && (
-          <div className="mb-3.5">
+            {/* Main Register button */}
             <button
               type="button"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full flex items-center justify-between p-2 rounded-lg cursor-pointer text-left transition-colors bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46]"
+              onClick={handleToggleRegistration}
+              disabled={isRegistering}
+              style={{
+                flex: 1,
+                padding: '11px 16px',
+                borderRadius: '9999px',
+                fontSize: 13,
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                cursor: isRegistering ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
+                border: 'none',
+                ...(isRegistered
+                  ? {
+                      backgroundColor: '#EDFAF4',
+                      color: '#10B981',
+                      boxShadow: 'none',
+                      border: '1px solid #10B981',
+                    }
+                  : {
+                      backgroundColor: '#FF385C',
+                      color: '#FFFFFF',
+                      boxShadow: '0 2px 8px rgba(255,56,92,0.30)',
+                    }),
+              }}
             >
-              <span className="text-xs font-medium text-zinc-300">
-                Itinerary & Timeline ({event.itinerary.length} items)
-              </span>
-              <motion.div
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ChevronDown size={14} className="text-zinc-400" />
-              </motion.div>
+              {isRegistered ? (
+                <>
+                  <CheckCircle2 size={14} />
+                  <span>Registered ✓</span>
+                </>
+              ) : (
+                <span>Register Now</span>
+              )}
             </button>
 
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div
-                    className="mt-2 p-3 rounded-lg flex flex-col gap-2 bg-[#0e0e11] border border-[#27272a]"
-                  >
-                    {event.itinerary.map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-2.5 text-xs">
-                        <span
-                          className="text-[11px] font-mono px-1.5 py-0.5 rounded text-zinc-300 flex-shrink-0 bg-[#18181b] border border-[#27272a]"
-                        >
-                          {item.time}
-                        </span>
-                        <span className="text-zinc-400 leading-snug">{item.activity}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Calendar Save */}
+            <button
+              type="button"
+              onClick={() => setShowCalendarModal(true)}
+              title="Save to Campus Calendar"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <CalendarIcon size={15} />
+            </button>
+
+            {/* Friend Invite */}
+            <button
+              type="button"
+              onClick={() => setShowInviteModal(true)}
+              title="Invite Friends"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <UserPlus size={15} />
+            </button>
           </div>
-        )}
-
-        {/* Action Buttons Row */}
-        <div className="flex items-center gap-2 pt-2.5 border-t border-[#27272a]">
-          {/* Main Register Button: Saturated accent strictly for active / registered status */}
-          <button
-            type="button"
-            onClick={handleToggleRegistration}
-            disabled={isRegistering}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
-              isRegistered
-                ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/60'
-                : 'btn-primary'
-            }`}
-          >
-            {isRegistered ? (
-              <>
-                <CheckCircle2 size={14} />
-                <span>Registered ✓</span>
-              </>
-            ) : (
-              <span>Register Now</span>
-            )}
-          </button>
-
-          {/* Bookmark Button */}
-          <button
-            type="button"
-            onClick={handleToggleBookmark}
-            className={`p-2 rounded-xl border cursor-pointer flex items-center justify-center transition-all ${
-              isBookmarked
-                ? 'border-amber-500/50 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25'
-                : 'border-[#27272a] bg-[#18181b] text-zinc-400 hover:text-zinc-200 hover:border-[#3f3f46]'
-            }`}
-            title={isBookmarked ? 'Remove Bookmark' : 'Bookmark Event'}
-          >
-            <Bookmark size={14} className={isBookmarked ? 'fill-amber-400' : ''} />
-          </button>
-
-          {/* Calendar Save Button */}
-          <button
-            type="button"
-            onClick={() => setShowCalendarModal(true)}
-            className="p-2 rounded-xl border border-[#27272a] bg-[#18181b] text-zinc-400 hover:text-zinc-200 hover:border-[#3f3f46] cursor-pointer flex items-center justify-center transition-colors"
-            title="Save to Campus Calendar"
-          >
-            <CalendarIcon size={14} />
-          </button>
-
-          {/* Friend Invite Button */}
-          <button
-            type="button"
-            onClick={() => setShowInviteModal(true)}
-            className="p-2 rounded-xl border border-[#27272a] bg-[#18181b] text-zinc-400 hover:text-zinc-200 hover:border-[#3f3f46] cursor-pointer flex items-center justify-center transition-colors"
-            title="Invite Friends"
-          >
-            <UserPlus size={14} />
-          </button>
         </div>
       </div>
 

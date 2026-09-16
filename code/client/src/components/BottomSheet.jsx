@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Navigation, X, MapPin, Share2 } from 'lucide-react'
 
@@ -24,18 +23,32 @@ export default function BottomSheet({ pin, onClose }) {
 
   return (
     <AnimatePresence>
+      {/* Backdrop */}
       <motion.div
         key="backdrop"
-        className="absolute inset-0 z-30"
-        style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+        style={{ position: 'absolute', inset: 0, zIndex: 30, backgroundColor: 'rgba(0,0,0,0.4)' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
       />
+
+      {/* Sheet */}
       <motion.div
         key="sheet"
-        className="absolute bottom-0 left-0 right-0 z-40 rounded-t-2xl overflow-hidden bg-[#121215] border border-[#27272a] border-b-0 max-h-[70vh]"
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 40,
+          borderRadius: '20px 20px 0 0',
+          overflow: 'hidden',
+          backgroundColor: '#FFFFFF',
+          maxHeight: '70vh',
+          boxShadow: '0 -4px 32px rgba(0,0,0,0.16)',
+          border: '1px solid #DDDDDD',
+        }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -47,72 +60,118 @@ export default function BottomSheet({ pin, onClose }) {
           if (info.offset.y > 120) onClose()
         }}
       >
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1">
+        {/* Drag Handle */}
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4 }}>
           <div className="drag-handle" />
         </div>
 
-        <div className="px-5 pb-8 overflow-y-auto" style={{ maxHeight: 'calc(70vh - 24px)' }}>
+        <div style={{ padding: '0 20px 32px', overflowY: 'auto', maxHeight: 'calc(70vh - 28px)' }}>
           {/* Header */}
-          <div className="flex items-start justify-between mb-3.5">
-            <div className="flex-1 min-w-0 pr-2">
-              <div className="flex items-center gap-2 mb-1.5">
-                <span
-                  className="text-[11px] font-medium px-2 py-0.5 rounded-md border border-[#27272a] text-zinc-400 bg-transparent"
-                >
-                  {pin.category}
-                </span>
-              </div>
-              <h2 className="text-lg font-bold text-zinc-100 leading-tight truncate">
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ flex: 1, minWidth: 0, paddingRight: 12 }}>
+              {/* Category chip */}
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '3px 10px',
+                  borderRadius: '9999px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  backgroundColor: '#FFFFFF',
+                  color: '#717171',
+                  border: '1px solid #DDDDDD',
+                  marginBottom: 8,
+                }}
+              >
+                {pin.category}
+              </span>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
                 {pin.name}
               </h2>
               {pin.distance_metric && (
-                <p className="text-xs text-zinc-500 mt-0.5 flex items-center gap-1">
-                  <MapPin size={12} className="text-zinc-500" />
+                <p style={{ fontSize: 12, color: '#717171', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <MapPin size={12} />
                   <span>{pin.distance_metric}</span>
                 </p>
               )}
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46] cursor-pointer"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+                flexShrink: 0,
+              }}
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           </div>
 
-          {/* Rating */}
-          <div className="flex items-center gap-2 mb-3.5">
+          {/* Star Rating */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <div
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold bg-[#18181b] border border-[#27272a] text-[#f4f4f5]"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '5px 10px',
+                borderRadius: '9999px',
+                backgroundColor: '#FFF8ED',
+                border: '1px solid #FFE8C0',
+              }}
             >
-              <Star size={13} fill="#eab308" color="#eab308" />
-              <span>{pin.rating}</span>
+              <Star size={13} fill="#F59E0B" color="#F59E0B" />
+              <span style={{ fontSize: 13, fontWeight: 800, color: '#222222' }}>{pin.rating}</span>
             </div>
-            <span className="text-xs text-zinc-500">Student verified rating</span>
+            <span style={{ fontSize: 12, color: '#717171' }}>Student verified rating</span>
           </div>
 
           {/* Description */}
           {pin.description && (
-            <p className="text-xs text-zinc-400 leading-relaxed mb-5">
+            <p style={{ fontSize: 14, color: '#222222', lineHeight: 1.6, marginBottom: 20 }}>
               {pin.description}
             </p>
           )}
 
-          {/* Actions: Standard Primary & Secondary Buttons */}
-          <div className="flex gap-2.5">
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 10 }}>
             <button
               onClick={handleDirections}
-              className="btn-primary flex-1 flex items-center justify-center gap-2 py-2.5 text-xs"
+              className="btn-primary"
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 7,
+                padding: '13px 16px',
+                fontSize: 13,
+              }}
             >
-              <Navigation size={14} />
+              <Navigation size={15} />
               <span>Get Directions</span>
             </button>
             <button
               onClick={handleShare}
-              className="btn-secondary px-4 py-2.5 text-xs flex items-center justify-center gap-1.5"
+              className="btn-secondary"
+              style={{
+                padding: '13px 18px',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
             >
-              <Share2 size={14} />
+              <Share2 size={15} />
               <span>Share</span>
             </button>
           </div>

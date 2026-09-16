@@ -47,6 +47,7 @@ export default function BottomSheet({ pin, onClose }) {
           backgroundColor: '#FFFFFF',
           maxHeight: '70vh',
           boxShadow: '0 -4px 32px rgba(0,0,0,0.16)',
+          border: '1px solid #DDDDDD',
         }}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
@@ -77,9 +78,9 @@ export default function BottomSheet({ pin, onClose }) {
                   borderRadius: '9999px',
                   fontSize: 11,
                   fontWeight: 600,
-                  backgroundColor: '#F7F7F7',
-                  color: '#767676',
-                  border: '1px solid #EBEBEB',
+                  backgroundColor: '#FFFFFF',
+                  color: '#717171',
+                  border: '1px solid #DDDDDD',
                   marginBottom: 8,
                 }}
               >
@@ -89,7 +90,7 @@ export default function BottomSheet({ pin, onClose }) {
                 {pin.name}
               </h2>
               {pin.distance_metric && (
-                <p style={{ fontSize: 12, color: '#B0B0B0', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <p style={{ fontSize: 12, color: '#717171', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <MapPin size={12} />
                   <span>{pin.distance_metric}</span>
                 </p>
@@ -105,9 +106,9 @@ export default function BottomSheet({ pin, onClose }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                backgroundColor: '#F7F7F7',
-                border: '1px solid #EBEBEB',
-                color: '#484848',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
                 flexShrink: 0,
               }}
             >
@@ -131,12 +132,12 @@ export default function BottomSheet({ pin, onClose }) {
               <Star size={13} fill="#F59E0B" color="#F59E0B" />
               <span style={{ fontSize: 13, fontWeight: 800, color: '#222222' }}>{pin.rating}</span>
             </div>
-            <span style={{ fontSize: 12, color: '#B0B0B0' }}>Student verified rating</span>
+            <span style={{ fontSize: 12, color: '#717171' }}>Student verified rating</span>
           </div>
 
           {/* Description */}
           {pin.description && (
-            <p style={{ fontSize: 14, color: '#484848', lineHeight: 1.6, marginBottom: 20 }}>
+            <p style={{ fontSize: 14, color: '#222222', lineHeight: 1.6, marginBottom: 20 }}>
               {pin.description}
             </p>
           )}

@@ -45,26 +45,77 @@ export default function LoginView({ onLogin }) {
 
   return (
     <div
-      className="h-full w-full flex flex-col items-center justify-center px-4 relative overflow-hidden bg-[#09090b]"
+      className="h-full w-full flex flex-col items-center justify-center px-4 relative overflow-hidden bg-white"
+      style={{ backgroundColor: '#FFFFFF' }}
     >
-      {/* Top Logo with single signature gradient */}
-      <div className="text-center mb-6">
-        <h1 className="text-3xl md:text-4xl font-black tracking-tight">
+      {/* Subtle background decoration */}
+      <div
+        style={{
+          position: 'absolute',
+          top: -120,
+          right: -80,
+          width: 360,
+          height: 360,
+          borderRadius: '9999px',
+          background: 'radial-gradient(circle, rgba(255,56,92,0.06) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Logo */}
+      <div className="text-center mb-8">
+        <div style={{ marginBottom: 8 }}>
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: '9999px',
+              backgroundColor: '#FF385C',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 12px',
+              boxShadow: '0 4px 16px rgba(255,56,92,0.35)',
+            }}
+          >
+            <span style={{ color: '#FFFFFF', fontSize: 22, fontWeight: 900 }}>⌘</span>
+          </div>
+        </div>
+        <h1
+          style={{
+            fontSize: 32,
+            fontWeight: 800,
+            letterSpacing: '-0.03em',
+            margin: 0,
+          }}
+        >
           <span className="logo-gradient-text">Campus</span>
-          <span className="text-zinc-100">Pulse</span>
+          <span style={{ color: '#222222' }}>Pulse</span>
         </h1>
-        <p className="text-xs md:text-sm text-zinc-500 mt-1">
+        <p style={{ fontSize: 13, color: '#717171', marginTop: 6 }}>
           Thapar Institute Campus Social Layer
         </p>
       </div>
 
       {/* Card */}
       <div
-        className="w-full max-w-sm md:max-w-md p-6 md:p-8 rounded-2xl bg-[#121215] border border-[#27272a] shadow-2xl"
+        style={{
+          width: '100%',
+          maxWidth: 400,
+          backgroundColor: '#FFFFFF',
+          borderRadius: 16,
+          boxShadow: '0 4px 32px rgba(0,0,0,0.08)',
+          padding: '28px 28px 24px',
+          border: '1px solid #DDDDDD',
+        }}
       >
-        {/* Toggle Mode */}
+        {/* Tab toggle — Airbnb 2px solid #222222 underline style */}
         <div
-          className="flex rounded-xl overflow-hidden mb-5 p-1 bg-[#18181b] border border-[#27272a]"
+          style={{
+            display: 'flex',
+            borderBottom: '1px solid #DDDDDD',
+            marginBottom: 22,
+          }}
         >
           {['login', 'register'].map((m) => (
             <button
@@ -73,18 +124,27 @@ export default function LoginView({ onLogin }) {
                 setMode(m)
                 setError('')
               }}
-              className="flex-1 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer"
               style={{
-                backgroundColor: mode === m ? '#f4f4f5' : 'transparent',
-                color: mode === m ? '#09090b' : '#71717a',
+                flex: 1,
+                paddingBottom: 12,
+                fontSize: 14,
+                fontWeight: mode === m ? 700 : 500,
+                color: mode === m ? '#222222' : '#717171',
+                background: 'none',
+                border: 'none',
+                borderBottom: mode === m ? '2px solid #222222' : '2px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                marginBottom: -1,
+                letterSpacing: '-0.01em',
               }}
             >
-              {m === 'login' ? 'Sign In' : 'Register'}
+              {m === 'login' ? 'Sign In' : 'Create Account'}
             </button>
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <AnimatePresence>
             {mode === 'register' && (
               <motion.input
@@ -111,31 +171,47 @@ export default function LoginView({ onLogin }) {
             required
           />
 
-          <div className="relative">
+          <div style={{ position: 'relative' }}>
             <input
-              className="input-standard pr-10"
+              className="input-standard"
               type={showPass ? 'text' : 'password'}
               placeholder="Password"
               value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              style={{ paddingRight: 44 }}
               required
             />
             <button
               type="button"
               onClick={() => setShowPass((s) => !s)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 cursor-pointer"
+              style={{
+                position: 'absolute',
+                right: 14,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: '#717171',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+              }}
             >
-              {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+              {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
 
           <AnimatePresence>
             {error && (
               <motion.p
-                className="text-xs px-3 py-2 rounded-lg text-red-400"
                 style={{
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  fontSize: 12,
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  color: '#FF385C',
+                  backgroundColor: 'rgba(255,56,92,0.07)',
+                  border: '1px solid rgba(255,56,92,0.18)',
+                  margin: 0,
                 }}
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
@@ -148,7 +224,8 @@ export default function LoginView({ onLogin }) {
 
           <button
             type="submit"
-            className="btn-primary py-2.5 text-xs font-semibold mt-1 flex items-center justify-center gap-2 cursor-pointer"
+            className="btn-primary"
+            style={{ padding: '14px', fontSize: 14, marginTop: 6, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
             disabled={loading}
           >
             {loading ? (
@@ -160,6 +237,11 @@ export default function LoginView({ onLogin }) {
             )}
           </button>
         </form>
+
+        {/* Terms note */}
+        <p style={{ fontSize: 11, color: '#717171', textAlign: 'center', marginTop: 16, lineHeight: 1.5 }}>
+          By continuing, you agree to CampusPulse&rsquo;s Terms of Service
+        </p>
       </div>
     </div>
   )

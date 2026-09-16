@@ -3,19 +3,18 @@
 
 /* ── Tailwind v4 Theme Variables ─────────────────────────────────────────── */
 @theme {
-  --color-rausch: #FF5A5F;
-  --color-babu: #00A699;
-  --color-arches: #FC642D;
-  --color-hof: #484848;
-  --color-foggy: #767676;
+  --color-coral: #FF385C;
+  --color-coral-hover: #E0314F;
+  --color-hof: #222222;
+  --color-foggy: #717171;
 
   --color-surface: #FFFFFF;
-  --color-surface-subtle: #F7F7F7;
-  --color-surface-hover: #F0F0F0;
+  --color-surface-subtle: #FFFFFF;
+  --color-surface-hover: #F7F7F7;
 
   --color-border: #DDDDDD;
-  --color-border-subtle: #EBEBEB;
-  --color-border-hover: #B0B0B0;
+  --color-border-subtle: #DDDDDD;
+  --color-border-hover: #222222;
 
   --font-family-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
 
@@ -40,8 +39,8 @@ html, body, #root {
 
 body {
   font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-  background-color: #F7F7F7;
-  color: #484848;
+  background-color: #FFFFFF;
+  color: #222222;
   margin: 0;
   padding: 0;
   letter-spacing: -0.01em;
@@ -80,9 +79,9 @@ body {
   transform: translateY(-1px);
 }
 
-/* ── Signature Logo Gradient (Airbnb Red) ────────────────────────────────── */
+/* ── Signature Logo Gradient (Airbnb Coral) ────────────────────────────────── */
 .logo-gradient-text {
-  background: linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%);
+  background: linear-gradient(135deg, #FF385C 0%, #E0314F 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -105,13 +104,13 @@ body {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 .hero-gradient-default {
-  background: linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%);
+  background: linear-gradient(135deg, #FF385C 0%, #E0314F 100%);
 }
 
 /* ── Standard Buttons ────────────────────────────────────────────────────── */
-/* Primary: Rausch Red pill */
+/* Primary: Airbnb Coral pill */
 .btn-primary {
-  background-color: #FF5A5F;
+  background-color: #FF385C;
   color: #FFFFFF;
   font-weight: 600;
   border-radius: 9999px;
@@ -119,11 +118,11 @@ body {
   border: none;
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
-  box-shadow: 0 2px 8px rgba(255,90,95,0.35);
+  box-shadow: 0 2px 8px rgba(255,56,92,0.30);
 }
 .btn-primary:hover {
-  background-color: #E04E52;
-  box-shadow: 0 4px 16px rgba(255,90,95,0.45);
+  background-color: #E0314F;
+  box-shadow: 0 4px 16px rgba(255,56,92,0.40);
 }
 .btn-primary:active {
   transform: scale(0.98);
@@ -311,21 +310,21 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #F7F7F7;
+  background-color: #FFFFFF;
   border: 2px solid #DDDDDD;
-  color: #767676;
+  color: #717171;
   font-weight: 700;
   font-size: 13px;
   transition: all 0.15s ease;
 }
 .story-avatar-base:hover {
-  border-color: #484848;
-  color: #484848;
+  border-color: #222222;
+  color: #222222;
 }
 .story-avatar-active {
-  border-color: #FF5A5F;
+  border-color: #FF385C;
   border-width: 2.5px;
-  color: #484848;
+  color: #222222;
 }
 
 /* Select option background */

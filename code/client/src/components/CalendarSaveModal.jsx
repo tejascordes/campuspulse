@@ -61,11 +61,21 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          padding: '0',
+        }}
+        className="md:items-center md:p-4"
+      >
         {/* Backdrop */}
         <motion.div
-          className="absolute inset-0"
-          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.50)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -74,7 +84,20 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
 
         {/* Sheet */}
         <motion.div
-          className="relative w-full max-w-md p-5 rounded-t-2xl md:rounded-2xl z-10 bg-[#121215] border border-[#27272a] max-h-[90vh] overflow-y-auto shadow-2xl"
+          style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: 440,
+            padding: '20px 20px 28px',
+            borderRadius: '20px 20px 0 0',
+            zIndex: 10,
+            backgroundColor: '#FFFFFF',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 -4px 40px rgba(0,0,0,0.14)',
+            border: '1px solid #DDDDDD',
+          }}
+          className="md:rounded-2xl"
           initial={{ y: '100%', opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
@@ -83,41 +106,72 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
           <div className="drag-handle md:hidden" />
 
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <CalendarIcon size={18} className="text-zinc-300" />
-              <h2 className="text-base font-bold text-zinc-100">Save to Calendar</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '9999px',
+                  backgroundColor: '#FFF5F5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <CalendarIcon size={17} style={{ color: '#FF385C' }} />
+              </div>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.02em' }}>
+                Save to Calendar
+              </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46] cursor-pointer"
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+              }}
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           </div>
 
-          {/* Event Mini Card */}
+          {/* Event mini card */}
           <div
-            className="p-3.5 rounded-xl mb-4 bg-[#18181b] border border-[#27272a]"
+            style={{
+              padding: '12px 14px',
+              borderRadius: 12,
+              marginBottom: 18,
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #DDDDDD',
+            }}
           >
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-semibold text-zinc-200">
-                {event.society_name}
-              </span>
-              <span className="text-xs text-zinc-500">{formattedDate}</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#717171' }}>{event.society_name}</span>
+              <span style={{ fontSize: 11, color: '#717171' }}>{formattedDate}</span>
             </div>
-            <h4 className="text-sm font-semibold text-zinc-100 line-clamp-1">{event.title}</h4>
+            <h4 style={{ fontSize: 14, fontWeight: 700, color: '#222222', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {event.title}
+            </h4>
             {event.venue && (
-              <p className="text-xs text-zinc-400 mt-1">📍 {event.venue}</p>
+              <p style={{ fontSize: 12, color: '#717171', margin: '4px 0 0' }}>📍 {event.venue}</p>
             )}
           </div>
 
-          {/* Sharing Privacy Level */}
-          <div className="mb-5">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-2">
+          {/* Privacy selection */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>
               Share Visibility with Friends
             </label>
-            <div className="flex flex-col gap-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {PRIVACY_OPTIONS.map((opt) => {
                 const Icon = opt.icon
                 const isSelected = privacy === opt.key
@@ -126,53 +180,86 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
                     key={opt.key}
                     type="button"
                     onClick={() => setPrivacy(opt.key)}
-                    className="flex items-center justify-between p-3 rounded-xl cursor-pointer text-left transition-colors"
                     style={{
-                      backgroundColor: isSelected ? '#18181b' : '#121215',
-                      border: `1px solid ${isSelected ? '#52525b' : '#27272a'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 14px',
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                      backgroundColor: isSelected ? '#FFF5F5' : '#FFFFFF',
+                      border: isSelected ? '1.5px solid #FF385C' : '1px solid #DDDDDD',
                     }}
                   >
-                    <div className="flex items-center gap-3">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center"
                         style={{
-                          backgroundColor: '#18181b',
-                          color: isSelected ? '#f4f4f5' : '#71717a',
-                          border: '1px solid #27272a',
+                          width: 34,
+                          height: 34,
+                          borderRadius: '9999px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: isSelected ? '#FF385C' : '#F7F7F7',
+                          color: isSelected ? '#FFFFFF' : '#717171',
+                          transition: 'all 0.15s ease',
+                          border: '1px solid #DDDDDD',
                         }}
                       >
-                        <Icon size={16} />
+                        <Icon size={15} />
                       </div>
                       <div>
-                        <p
-                          className="text-xs font-semibold"
-                          style={{ color: isSelected ? '#f4f4f5' : '#a1a1aa' }}
-                        >
-                          {opt.label}
-                        </p>
-                        <p className="text-[11px] text-zinc-500">{opt.subtitle}</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: isSelected ? '#222222' : '#222222', margin: 0 }}>{opt.label}</p>
+                        <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>{opt.subtitle}</p>
                       </div>
                     </div>
-                    {isSelected && (
-                      <div className="w-4 h-4 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-950">
-                        <Check size={11} strokeWidth={3} />
-                      </div>
-                    )}
+                    {/* Radio button */}
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: '9999px',
+                        border: isSelected ? '2px solid #FF385C' : '2px solid #DDDDDD',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {isSelected && (
+                        <div style={{ width: 8, height: 8, borderRadius: '9999px', backgroundColor: '#FF385C' }} />
+                      )}
+                    </div>
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <button
             onClick={handleSave}
             disabled={saving || success}
-            className={`w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors ${
-              success
-                ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800'
-                : 'btn-primary'
-            }`}
+            style={{
+              width: '100%',
+              padding: '14px',
+              borderRadius: '9999px',
+              fontSize: 14,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              cursor: saving || success ? 'not-allowed' : 'pointer',
+              border: 'none',
+              transition: 'all 0.15s ease',
+              backgroundColor: success ? '#EDFAF4' : '#FF385C',
+              color: success ? '#10B981' : '#FFFFFF',
+              boxShadow: success ? 'none' : '0 2px 8px rgba(255,56,92,0.30)',
+            }}
           >
             {saving ? (
               <Loader2 size={16} className="animate-spin" />

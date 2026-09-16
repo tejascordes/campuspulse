@@ -95,6 +95,7 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
             maxHeight: '90vh',
             overflowY: 'auto',
             boxShadow: '0 -4px 40px rgba(0,0,0,0.14)',
+            border: '1px solid #DDDDDD',
           }}
           className="md:rounded-2xl"
           initial={{ y: '100%', opacity: 0 }}
@@ -118,7 +119,7 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
                   justifyContent: 'center',
                 }}
               >
-                <CalendarIcon size={17} style={{ color: '#FF5A5F' }} />
+                <CalendarIcon size={17} style={{ color: '#FF385C' }} />
               </div>
               <h2 style={{ fontSize: 16, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.02em' }}>
                 Save to Calendar
@@ -134,9 +135,9 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                backgroundColor: '#F7F7F7',
-                border: '1px solid #EBEBEB',
-                color: '#484848',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
               }}
             >
               <X size={15} />
@@ -149,25 +150,25 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
               padding: '12px 14px',
               borderRadius: 12,
               marginBottom: 18,
-              backgroundColor: '#F7F7F7',
-              border: '1px solid #EBEBEB',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #DDDDDD',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#767676' }}>{event.society_name}</span>
-              <span style={{ fontSize: 11, color: '#B0B0B0' }}>{formattedDate}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#717171' }}>{event.society_name}</span>
+              <span style={{ fontSize: 11, color: '#717171' }}>{formattedDate}</span>
             </div>
             <h4 style={{ fontSize: 14, fontWeight: 700, color: '#222222', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {event.title}
             </h4>
             {event.venue && (
-              <p style={{ fontSize: 12, color: '#B0B0B0', margin: '4px 0 0' }}>📍 {event.venue}</p>
+              <p style={{ fontSize: 12, color: '#717171', margin: '4px 0 0' }}>📍 {event.venue}</p>
             )}
           </div>
 
           {/* Privacy selection */}
           <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>
               Share Visibility with Friends
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -188,8 +189,8 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.15s ease',
-                      backgroundColor: isSelected ? '#FFF5F5' : '#F7F7F7',
-                      border: isSelected ? '1.5px solid #FF5A5F' : '1.5px solid #EBEBEB',
+                      backgroundColor: isSelected ? '#FFF5F5' : '#FFFFFF',
+                      border: isSelected ? '1.5px solid #FF385C' : '1px solid #DDDDDD',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -201,16 +202,17 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: isSelected ? '#FF5A5F' : '#EBEBEB',
-                          color: isSelected ? '#FFFFFF' : '#767676',
+                          backgroundColor: isSelected ? '#FF385C' : '#F7F7F7',
+                          color: isSelected ? '#FFFFFF' : '#717171',
                           transition: 'all 0.15s ease',
+                          border: '1px solid #DDDDDD',
                         }}
                       >
                         <Icon size={15} />
                       </div>
                       <div>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: isSelected ? '#222222' : '#484848', margin: 0 }}>{opt.label}</p>
-                        <p style={{ fontSize: 11, color: '#B0B0B0', margin: '2px 0 0' }}>{opt.subtitle}</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: isSelected ? '#222222' : '#222222', margin: 0 }}>{opt.label}</p>
+                        <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>{opt.subtitle}</p>
                       </div>
                     </div>
                     {/* Radio button */}
@@ -219,7 +221,7 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
                         width: 18,
                         height: 18,
                         borderRadius: '9999px',
-                        border: isSelected ? '2px solid #FF5A5F' : '2px solid #DDDDDD',
+                        border: isSelected ? '2px solid #FF385C' : '2px solid #DDDDDD',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -228,7 +230,7 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
                       }}
                     >
                       {isSelected && (
-                        <div style={{ width: 8, height: 8, borderRadius: '9999px', backgroundColor: '#FF5A5F' }} />
+                        <div style={{ width: 8, height: 8, borderRadius: '9999px', backgroundColor: '#FF385C' }} />
                       )}
                     </div>
                   </button>
@@ -254,9 +256,9 @@ export default function CalendarSaveModal({ event, onClose, onSaved }) {
               cursor: saving || success ? 'not-allowed' : 'pointer',
               border: 'none',
               transition: 'all 0.15s ease',
-              backgroundColor: success ? '#EDFAF4' : '#FF5A5F',
+              backgroundColor: success ? '#EDFAF4' : '#FF385C',
               color: success ? '#10B981' : '#FFFFFF',
-              boxShadow: success ? 'none' : '0 2px 8px rgba(255,90,95,0.35)',
+              boxShadow: success ? 'none' : '0 2px 8px rgba(255,56,92,0.30)',
             }}
           >
             {saving ? (

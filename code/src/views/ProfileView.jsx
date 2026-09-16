@@ -61,8 +61,8 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
 
   return (
     <div
-      className="h-full w-full overflow-y-auto"
-      style={{ backgroundColor: '#F7F7F7', padding: '0 16px 96px' }}
+      className="h-full w-full overflow-y-auto bg-white"
+      style={{ backgroundColor: '#FFFFFF', padding: '0 16px 96px' }}
     >
       <div
         style={{ maxWidth: '56rem', margin: '0 auto', width: '100%', paddingTop: 24 }}
@@ -86,9 +86,9 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                 borderRadius: '9999px',
                 fontSize: 13,
                 fontWeight: 600,
-                color: '#767676',
+                color: '#717171',
                 backgroundColor: '#FFFFFF',
-                border: '1.5px solid #DDDDDD',
+                border: '1px solid #DDDDDD',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
                 boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
@@ -107,10 +107,11 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
               display: 'flex',
               alignItems: 'center',
               gap: 16,
-              border: '1px solid #EBEBEB',
+              border: '1px solid #DDDDDD',
+              backgroundColor: '#FFFFFF',
             }}
           >
-            {/* Avatar with red ring */}
+            {/* Avatar with single coral ring */}
             <div
               style={{
                 width: 60,
@@ -121,10 +122,10 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                 justifyContent: 'center',
                 fontSize: 18,
                 fontWeight: 800,
-                color: '#FF5A5F',
+                color: '#FF385C',
                 flexShrink: 0,
-                backgroundColor: '#FFF5F5',
-                border: '2.5px solid #FF5A5F',
+                backgroundColor: '#FFFFFF',
+                border: '2px solid #FF385C',
                 letterSpacing: '-0.01em',
               }}
             >
@@ -148,7 +149,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
               <p
                 style={{
                   fontSize: 12,
-                  color: '#B0B0B0',
+                  color: '#717171',
                   margin: '3px 0 0',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -158,14 +159,14 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                 {user?.email}
               </p>
               {user?.bio && (
-                <p style={{ fontSize: 12, color: '#767676', marginTop: 6, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, color: '#222222', marginTop: 6, lineHeight: 1.5 }}>
                   {user.bio}
                 </p>
               )}
             </div>
           </div>
 
-          {/* Stats Grid */}
+          {/* Stats Grid: #F7F7F7 surface panels with key numbers */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             {STAT_CARDS.map((stat) => (
               <div
@@ -174,13 +175,14 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                 style={{
                   padding: '14px 8px',
                   textAlign: 'center',
-                  border: '1px solid #EBEBEB',
+                  border: '1px solid #DDDDDD',
+                  backgroundColor: '#F7F7F7',
                 }}
               >
-                <p style={{ fontSize: 22, fontWeight: 900, color: '#FF5A5F', margin: 0, letterSpacing: '-0.03em' }}>
+                <p style={{ fontSize: 22, fontWeight: 900, color: '#222222', margin: 0, letterSpacing: '-0.03em' }}>
                   {stat.value}
                 </p>
-                <p style={{ fontSize: 11, color: '#B0B0B0', margin: '3px 0 0', fontWeight: 600 }}>
+                <p style={{ fontSize: 11, color: '#717171', margin: '3px 0 0', fontWeight: 600 }}>
                   {stat.label}
                 </p>
               </div>
@@ -190,9 +192,9 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
           {/* Affiliation card */}
           <div
             className="surface-card"
-            style={{ padding: '14px 20px', border: '1px solid #EBEBEB' }}
+            style={{ padding: '14px 20px', border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}
           >
-            <p style={{ fontSize: 10, fontWeight: 800, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>
               Campus Affiliation
             </p>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#222222', margin: 0 }}>
@@ -205,19 +207,19 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
         <div className="md:col-span-7">
           <div
             className="surface-card"
-            style={{ padding: 20, border: '1px solid #EBEBEB' }}
+            style={{ padding: 20, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
                 <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.01em' }}>
                   Calendar Privacy
                 </h3>
-                <p style={{ fontSize: 12, color: '#B0B0B0', margin: '3px 0 0' }}>
+                <p style={{ fontSize: 12, color: '#717171', margin: '3px 0 0' }}>
                   Control who sees events you add to schedule
                 </p>
               </div>
               <AnimatePresence>
-                {saving && <Loader2 size={15} className="animate-spin" style={{ color: '#B0B0B0' }} />}
+                {saving && <Loader2 size={15} className="animate-spin" style={{ color: '#FF385C' }} />}
                 {saved && (
                   <motion.div
                     initial={{ scale: 0 }}
@@ -256,9 +258,9 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                       textAlign: 'left',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
-                      backgroundColor: isActive ? '#FFF5F5' : '#F7F7F7',
-                      border: isActive ? '1.5px solid #FF5A5F' : '1.5px solid #EBEBEB',
-                      boxShadow: isActive ? '0 2px 10px rgba(255,90,95,0.12)' : 'none',
+                      backgroundColor: isActive ? '#FFF5F5' : '#FFFFFF',
+                      border: isActive ? '1.5px solid #FF385C' : '1px solid #DDDDDD',
+                      boxShadow: isActive ? '0 2px 10px rgba(255,56,92,0.12)' : 'none',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -272,9 +274,10 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                           alignItems: 'center',
                           justifyContent: 'center',
                           flexShrink: 0,
-                          backgroundColor: isActive ? '#FF5A5F' : '#EBEBEB',
-                          color: isActive ? '#FFFFFF' : '#767676',
+                          backgroundColor: isActive ? '#FF385C' : '#F7F7F7',
+                          color: isActive ? '#FFFFFF' : '#717171',
                           transition: 'all 0.15s ease',
+                          border: '1px solid #DDDDDD',
                         }}
                       >
                         <Icon size={17} />
@@ -284,13 +287,13 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                           style={{
                             fontSize: 14,
                             fontWeight: 700,
-                            color: isActive ? '#222222' : '#484848',
+                            color: '#222222',
                             margin: 0,
                           }}
                         >
                           {opt.label}
                         </p>
-                        <p style={{ fontSize: 12, color: '#B0B0B0', margin: '2px 0 0' }}>
+                        <p style={{ fontSize: 12, color: '#717171', margin: '2px 0 0' }}>
                           {opt.sub}
                         </p>
                       </div>
@@ -301,7 +304,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                         width: 20,
                         height: 20,
                         borderRadius: '9999px',
-                        border: isActive ? '2px solid #FF5A5F' : '2px solid #DDDDDD',
+                        border: isActive ? '2px solid #FF385C' : '2px solid #DDDDDD',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -315,7 +318,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                             width: 10,
                             height: 10,
                             borderRadius: '9999px',
-                            backgroundColor: '#FF5A5F',
+                            backgroundColor: '#FF385C',
                           }}
                         />
                       )}

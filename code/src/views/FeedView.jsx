@@ -19,7 +19,7 @@ import SocietyHub from '../components/SocietyHub.jsx'
 
 const CATEGORIES = ['Tech', 'Non-Tech', 'Hackathons', 'Prizes Only', 'Refreshments']
 
-export default function FeedView({ token, user }) {
+export default function FeedView({ token: _token, user: _user }) {
   const [feedMode, setFeedMode] = useState('posts') // 'posts' | 'events'
   const [posts, setPosts] = useState([])
   const [events, setEvents] = useState([])
@@ -73,14 +73,14 @@ export default function FeedView({ token, user }) {
   }
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden relative" style={{ backgroundColor: '#F7F7F7' }}>
+    <div className="h-full w-full flex flex-col overflow-hidden relative bg-white" style={{ backgroundColor: '#FFFFFF' }}>
 
       {/* ── Top Header (Airbnb style) ── */}
       <div
         style={{
           flexShrink: 0,
           backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #EBEBEB',
+          borderBottom: '1px solid #DDDDDD',
           zIndex: 20,
         }}
       >
@@ -93,7 +93,7 @@ export default function FeedView({ token, user }) {
                 <span className="logo-gradient-text">Campus</span>
                 <span style={{ color: '#222222' }}>Pulse</span>
               </h1>
-              <p style={{ fontSize: 11, color: '#B0B0B0', margin: '3px 0 0', fontWeight: 500 }}>
+              <p style={{ fontSize: 11, color: '#717171', margin: '3px 0 0', fontWeight: 500 }}>
                 Thapar Institute of Engineering &amp; Technology
               </p>
             </div>
@@ -106,9 +106,9 @@ export default function FeedView({ token, user }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                border: '1.5px solid #DDDDDD',
+                border: '1px solid #DDDDDD',
                 backgroundColor: '#FFFFFF',
-                color: '#484848',
+                color: '#222222',
                 position: 'relative',
                 boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
               }}
@@ -122,7 +122,7 @@ export default function FeedView({ token, user }) {
                   width: 7,
                   height: 7,
                   borderRadius: '9999px',
-                  backgroundColor: '#FF5A5F',
+                  backgroundColor: '#FF385C',
                   border: '1.5px solid #FFFFFF',
                 }}
               />
@@ -133,46 +133,46 @@ export default function FeedView({ token, user }) {
           <button
             onClick={() => setShowCreateModal(true)}
             className="search-pill"
-            style={{ width: '100%', marginBottom: 12 }}
+            style={{ width: '100%', marginBottom: 12, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}
           >
             <div
               style={{
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
                 borderRadius: '9999px',
-                backgroundColor: '#FF5A5F',
+                backgroundColor: '#FF385C',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
               }}
             >
-              <Search size={14} style={{ color: '#FFFFFF' }} />
+              <Search size={15} style={{ color: '#FFFFFF' }} />
             </div>
             <div style={{ textAlign: 'left', flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#222222' }}>Search announcements…</div>
-              <div style={{ fontSize: 11, color: '#B0B0B0', fontWeight: 500 }}>Societies · Events · Hackathons</div>
+              <div style={{ fontSize: 11, color: '#717171', fontWeight: 500 }}>Societies · Events · Hackathons</div>
             </div>
             <div
               style={{
                 width: 28,
                 height: 28,
                 borderRadius: '9999px',
-                border: '1.5px solid #DDDDDD',
+                border: '1px solid #DDDDDD',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Plus size={13} style={{ color: '#484848' }} />
+              <Plus size={13} style={{ color: '#222222' }} />
             </div>
           </button>
 
-          {/* Row 3: Feed Mode tabs — Airbnb underline style */}
+          {/* Row 3: Feed Mode tabs — 2px solid #222222 underline (Airbnb's exact style) */}
           <div
             style={{
               display: 'flex',
-              borderBottom: '1px solid #EBEBEB',
+              borderBottom: '1px solid #DDDDDD',
               gap: 0,
             }}
           >
@@ -194,10 +194,10 @@ export default function FeedView({ token, user }) {
                   paddingTop: 4,
                   fontSize: 13,
                   fontWeight: feedMode === mode ? 700 : 500,
-                  color: feedMode === mode ? '#222222' : '#767676',
+                  color: feedMode === mode ? '#222222' : '#717171',
                   background: 'none',
                   border: 'none',
-                  borderBottom: feedMode === mode ? '2px solid #FF5A5F' : '2px solid transparent',
+                  borderBottom: feedMode === mode ? '2px solid #222222' : '2px solid transparent',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   marginBottom: -1,
@@ -216,14 +216,14 @@ export default function FeedView({ token, user }) {
       </div>
 
       {/* ── Stories Row ── */}
-      <div style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #EBEBEB', flexShrink: 0 }}>
+      <div style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #DDDDDD', flexShrink: 0 }}>
         <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '0 16px' }}>
           <StoriesRow onSocietyClick={(socName) => setSelectedSociety(socName)} />
         </div>
       </div>
 
       {/* ── Feed Scroll Content ── */}
-      <div className="flex-1 overflow-y-auto" style={{ padding: '14px 16px 96px' }}>
+      <div className="flex-1 overflow-y-auto bg-white" style={{ padding: '16px 16px 96px', backgroundColor: '#FFFFFF' }}>
         <div
           style={{ maxWidth: '56rem', margin: '0 auto', width: '100%' }}
           className="md:grid md:grid-cols-12 md:gap-6"
@@ -232,8 +232,8 @@ export default function FeedView({ token, user }) {
           <div className="md:col-span-8">
             {loading ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 200, gap: 10 }}>
-                <Loader2 size={24} className="animate-spin" style={{ color: '#B0B0B0' }} />
-                <p style={{ fontSize: 13, color: '#B0B0B0' }}>Loading campus pulse…</p>
+                <Loader2 size={24} className="animate-spin" style={{ color: '#FF385C' }} />
+                <p style={{ fontSize: 13, color: '#717171' }}>Loading campus pulse…</p>
               </div>
             ) : feedMode === 'posts' ? (
               posts.length === 0 ? (
@@ -247,11 +247,12 @@ export default function FeedView({ token, user }) {
                     height: 200,
                     gap: 8,
                     textAlign: 'center',
-                    border: '1px solid #EBEBEB',
+                    border: '1px solid #DDDDDD',
+                    backgroundColor: '#FFFFFF',
                   }}
                 >
                   <p style={{ fontSize: 14, fontWeight: 700, color: '#222222' }}>No posts in this category</p>
-                  <p style={{ fontSize: 12, color: '#B0B0B0' }}>Be the first to post something exciting!</p>
+                  <p style={{ fontSize: 12, color: '#717171' }}>Be the first to post something exciting!</p>
                 </div>
               ) : (
                 <div>
@@ -271,11 +272,12 @@ export default function FeedView({ token, user }) {
                   height: 200,
                   gap: 8,
                   textAlign: 'center',
-                  border: '1px solid #EBEBEB',
+                  border: '1px solid #DDDDDD',
+                  backgroundColor: '#FFFFFF',
                 }}
               >
                 <p style={{ fontSize: 14, fontWeight: 700, color: '#222222' }}>No events found</p>
-                <p style={{ fontSize: 12, color: '#B0B0B0' }}>Check back later for upcoming society events.</p>
+                <p style={{ fontSize: 12, color: '#717171' }}>Check back later for upcoming society events.</p>
               </div>
             ) : (
               <div>
@@ -291,12 +293,12 @@ export default function FeedView({ token, user }) {
             {/* Create Pulse Card */}
             <div
               className="surface-card"
-              style={{ padding: 20, border: '1px solid #EBEBEB' }}
+              style={{ padding: 20, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}
             >
               <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: '0 0 4px', letterSpacing: '-0.01em' }}>
                 Create Pulse
               </h3>
-              <p style={{ fontSize: 12, color: '#B0B0B0', margin: '0 0 14px' }}>
+              <p style={{ fontSize: 12, color: '#717171', margin: '0 0 14px' }}>
                 Broadcast announcements or society updates.
               </p>
               <button
@@ -309,9 +311,9 @@ export default function FeedView({ token, user }) {
               </button>
             </div>
 
-            {/* Campus Highlights */}
-            <div className="surface-card" style={{ padding: 20, border: '1px solid #EBEBEB' }}>
-              <h3 style={{ fontSize: 11, fontWeight: 800, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 14px' }}>
+            {/* Campus Highlights (#F7F7F7 stat surface panel) */}
+            <div className="surface-card" style={{ padding: 20, border: '1px solid #DDDDDD', backgroundColor: '#F7F7F7' }}>
+              <h3 style={{ fontSize: 11, fontWeight: 800, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 14px' }}>
                 Campus Highlights
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -328,10 +330,10 @@ export default function FeedView({ token, user }) {
                       alignItems: 'center',
                       fontSize: 12,
                       padding: '10px 0',
-                      borderBottom: i < arr.length - 1 ? '1px solid #F0F0F0' : 'none',
+                      borderBottom: i < arr.length - 1 ? '1px solid #DDDDDD' : 'none',
                     }}
                   >
-                    <span style={{ color: '#767676' }}>{item.label}</span>
+                    <span style={{ color: '#717171' }}>{item.label}</span>
                     <span style={{ fontWeight: 700, color: '#222222' }}>{item.value}</span>
                   </div>
                 ))}
@@ -339,8 +341,8 @@ export default function FeedView({ token, user }) {
             </div>
 
             {/* Featured Hubs */}
-            <div className="surface-card" style={{ padding: 20, border: '1px solid #EBEBEB' }}>
-              <h3 style={{ fontSize: 11, fontWeight: 800, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 14px' }}>
+            <div className="surface-card" style={{ padding: 20, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF' }}>
+              <h3 style={{ fontSize: 11, fontWeight: 800, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 14px' }}>
                 Featured Hubs
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -358,20 +360,26 @@ export default function FeedView({ token, user }) {
                       justifyContent: 'space-between',
                       padding: '10px 12px',
                       borderRadius: 10,
-                      backgroundColor: '#F7F7F7',
-                      border: '1px solid #EBEBEB',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #DDDDDD',
                       cursor: 'pointer',
                       textAlign: 'left',
-                      transition: 'background-color 0.15s ease',
+                      transition: 'all 0.15s ease',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F0F0F0')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F7F7F7')}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#F7F7F7'
+                      e.currentTarget.style.borderColor = '#222222'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#FFFFFF'
+                      e.currentTarget.style.borderColor = '#DDDDDD'
+                    }}
                   >
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 700, color: '#222222', margin: 0 }}>{soc.name}</p>
-                      <p style={{ fontSize: 11, color: '#B0B0B0', margin: '2px 0 0' }}>{soc.sub}</p>
+                      <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>{soc.sub}</p>
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#767676' }}>{soc.members}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#717171' }}>{soc.members}</span>
                   </button>
                 ))}
               </div>
@@ -394,7 +402,7 @@ export default function FeedView({ token, user }) {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 20,
-          boxShadow: '0 4px 16px rgba(255,90,95,0.45)',
+          boxShadow: '0 4px 16px rgba(255,56,92,0.40)',
         }}
         onClick={() => setShowCreateModal(true)}
       >
@@ -444,6 +452,7 @@ export default function FeedView({ token, user }) {
                   maxHeight: '85vh',
                   overflowY: 'auto',
                   boxShadow: '0 -4px 40px rgba(0,0,0,0.14)',
+                  border: '1px solid #DDDDDD',
                 }}
                 className="md:rounded-2xl md:max-w-lg"
                 initial={{ y: '100%', opacity: 0 }}
@@ -466,9 +475,9 @@ export default function FeedView({ token, user }) {
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      backgroundColor: '#F7F7F7',
-                      border: '1px solid #EBEBEB',
-                      color: '#484848',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #DDDDDD',
+                      color: '#222222',
                     }}
                   >
                     <X size={15} />
@@ -497,7 +506,7 @@ export default function FeedView({ token, user }) {
                     </select>
                     <ChevronDown
                       size={14}
-                      style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#B0B0B0' }}
+                      style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#717171' }}
                     />
                   </div>
 
