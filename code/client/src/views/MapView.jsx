@@ -14,37 +14,37 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-// Dark tile layer with CARTO API Key to remove watermark
+// Clean light Airbnb-style Voyager tile layer with CARTO API Key
 const CARTO_API_KEY = import.meta.env.VITE_CARTO_API_KEY || 'cb1_3gif_1_36cb4736549ba6b2eb8d936b'
-const DARK_TILE = `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+const LIGHT_TILE = `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
 
 const CATEGORIES = ['Society Hub', 'Recreational', 'Academic', 'Food']
 
 function PinMarker({ pin, isSelected, onClick }) {
   return (
     <>
-      {/* Outer halo */}
+      {/* Outer halo / drop ring */}
       <CircleMarker
         center={[pin.latitude, pin.longitude]}
         radius={isSelected ? 20 : 13}
         pathOptions={{
-          color: isSelected ? '#FF385C' : '#FFFFFF',
+          color: isSelected ? '#FF385C' : '#222222',
           fillColor: isSelected ? '#FF385C' : '#FFFFFF',
-          fillOpacity: isSelected ? 0.18 : 0.1,
-          weight: isSelected ? 2 : 1,
-          opacity: isSelected ? 0.85 : 0.4,
+          fillOpacity: isSelected ? 0.22 : 0.95,
+          weight: isSelected ? 2.5 : 1.5,
+          opacity: 0.9,
         }}
         eventHandlers={{ click: () => onClick(pin) }}
       />
-      {/* Inner dot */}
+      {/* Inner vibrant coral / dark center */}
       <CircleMarker
         center={[pin.latitude, pin.longitude]}
         radius={isSelected ? 8 : 5}
         pathOptions={{
           color: '#FFFFFF',
-          fillColor: isSelected ? '#FF385C' : '#FFFFFF',
+          fillColor: isSelected ? '#FF385C' : '#222222',
           fillOpacity: 1,
-          weight: 2,
+          weight: 1.8,
           opacity: 1,
         }}
         eventHandlers={{ click: () => onClick(pin) }}
@@ -189,7 +189,7 @@ export default function MapView({ token: _token }) {
             >
               <TileLayer
                 attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                url={DARK_TILE}
+                url={LIGHT_TILE}
               />
               {filteredPins.map((pin) => (
                 <PinMarker
