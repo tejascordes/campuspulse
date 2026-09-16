@@ -58,7 +58,7 @@ export default function MapView({ token: _token }) {
   const [selectedPin, setSelectedPin] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
-  const [rotation, setRotation] = useState(10.5)
+  const [rotation, setRotation] = useState(-80)
 
   useEffect(() => {
     mapApi
@@ -114,8 +114,8 @@ export default function MapView({ token: _token }) {
             }}
           >
             <button
-              onClick={() => setRotation((prev) => (prev === 0 ? 10.5 : 0))}
-              title={rotation === 0 ? 'Align map to Thapar campus grid' : 'Reset map to True North'}
+              onClick={() => setRotation((prev) => (prev === 0 ? -80 : 0))}
+              title={rotation === 0 ? 'Rotate map so Nabha Road aligns to the right side' : 'Reset map to True North'}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -140,7 +140,7 @@ export default function MapView({ token: _token }) {
                   transition: 'transform 0.4s ease',
                 }}
               />
-              <span>{rotation !== 0 ? 'Campus Aligned' : 'North Up'}</span>
+              <span>{rotation !== 0 ? 'Nabha Rd (Right)' : 'North Up'}</span>
             </button>
           </div>
 
@@ -150,7 +150,7 @@ export default function MapView({ token: _token }) {
               position: 'absolute',
               top: 16,
               left: 12,
-              right: 160,
+              right: 175,
               zIndex: 30,
             }}
             className="md:hidden"
@@ -228,10 +228,10 @@ export default function MapView({ token: _token }) {
             <div
               style={{
                 position: 'absolute',
-                top: '-25%',
-                left: '-25%',
-                width: '150%',
-                height: '150%',
+                top: '-50%',
+                left: '-50%',
+                width: '200%',
+                height: '200%',
                 transform: `rotate(${rotation}deg)`,
                 transformOrigin: '50% 50%',
                 transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
