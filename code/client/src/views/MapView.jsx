@@ -18,7 +18,7 @@ L.Icon.Default.mergeOptions({
 const CARTO_API_KEY = import.meta.env.VITE_CARTO_API_KEY || 'cb1_3gif_1_36cb4736549ba6b2eb8d936b'
 const LIGHT_TILE = `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
 
-const CATEGORIES = ['Society Hub', 'Recreational', 'Academic', 'Food']
+const CATEGORIES = ['Society Hub', 'Academic', 'Recreational', 'Food', 'Sports']
 
 function PinMarker({ pin, isSelected, onClick }) {
   return (
