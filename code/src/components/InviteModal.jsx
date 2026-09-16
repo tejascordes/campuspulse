@@ -35,10 +35,7 @@ export default function InviteModal({ event, onClose }) {
     if (emails.length === 0) return
     setSending(true)
     try {
-      await eventsApi.sendInvite(event.id, {
-        emails,
-        message,
-      })
+      await eventsApi.sendInvite(event.id, { emails, message })
       setSent(true)
       setTimeout(() => {
         onClose()
@@ -52,11 +49,20 @@ export default function InviteModal({ event, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 50,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+        }}
+        className="md:items-center md:p-4"
+      >
         {/* Backdrop */}
         <motion.div
-          className="absolute inset-0"
-          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+          style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.50)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -65,7 +71,19 @@ export default function InviteModal({ event, onClose }) {
 
         {/* Sheet */}
         <motion.div
-          className="relative w-full max-w-md p-5 rounded-t-2xl md:rounded-2xl z-10 bg-[#121215] border border-[#27272a] max-h-[90vh] overflow-y-auto shadow-2xl"
+          style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: 440,
+            padding: '20px 20px 28px',
+            borderRadius: '20px 20px 0 0',
+            zIndex: 10,
+            backgroundColor: '#FFFFFF',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 -4px 40px rgba(0,0,0,0.14)',
+          }}
+          className="md:rounded-2xl"
           initial={{ y: '100%', opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
@@ -74,71 +92,139 @@ export default function InviteModal({ event, onClose }) {
           <div className="drag-handle md:hidden" />
 
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <UserPlus size={18} className="text-zinc-300" />
-              <h2 className="text-base font-bold text-zinc-100">Invite Friends</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '9999px',
+                  backgroundColor: '#FFF5F5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <UserPlus size={17} style={{ color: '#FF5A5F' }} />
+              </div>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.02em' }}>
+                Invite Friends
+              </h2>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46] cursor-pointer"
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backgroundColor: '#F7F7F7',
+                border: '1px solid #EBEBEB',
+                color: '#484848',
+              }}
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           </div>
 
-          {/* Event Quick Info */}
+          {/* Event quick info */}
           <div
-            className="p-3 rounded-xl mb-4 bg-[#18181b] border border-[#27272a]"
+            style={{
+              padding: '10px 14px',
+              borderRadius: 12,
+              marginBottom: 18,
+              backgroundColor: '#F7F7F7',
+              border: '1px solid #EBEBEB',
+            }}
           >
-            <p className="text-xs text-zinc-500">{event.society_name} presents</p>
-            <p className="text-sm font-semibold text-zinc-100 line-clamp-1">{event.title}</p>
+            <p style={{ fontSize: 11, color: '#B0B0B0', margin: '0 0 3px', fontWeight: 600 }}>
+              {event.society_name} presents
+            </p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#222222', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {event.title}
+            </p>
           </div>
 
-          {/* Email Input & Chips */}
-          <div className="mb-4">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-2">
+          {/* Email input + chips */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 10 }}>
               Select Friends / Add Email
             </label>
-            <form onSubmit={handleAddEmail} className="flex gap-2 mb-2.5">
+            <form onSubmit={handleAddEmail} style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
               <input
                 type="email"
                 placeholder="name@thapar.edu"
                 value={inputEmail}
                 onChange={(e) => setInputEmail(e.target.value)}
-                className="input-standard flex-1"
+                className="input-standard"
+                style={{ flex: 1 }}
               />
               <button
                 type="submit"
-                className="btn-secondary px-3.5 flex items-center justify-center rounded-xl cursor-pointer"
+                className="btn-secondary"
+                style={{
+                  padding: '0 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '9999px',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
               >
                 <Plus size={16} />
               </button>
             </form>
 
-            {/* Email Chips */}
-            <div className="flex flex-wrap gap-1.5">
+            {/* Email chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {emails.map((em) => (
                 <div
                   key={em}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-[#18181b] border border-[#27272a] text-zinc-300"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 10px 5px 12px',
+                    borderRadius: '9999px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    backgroundColor: '#F0F0F0',
+                    border: '1px solid #EBEBEB',
+                    color: '#484848',
+                  }}
                 >
                   <span>{em}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveEmail(em)}
-                    className="p-0.5 rounded-full text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 16,
+                      height: 16,
+                      borderRadius: '9999px',
+                      backgroundColor: '#DDDDDD',
+                      color: '#767676',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
                   >
-                    <X size={12} />
+                    <X size={10} />
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Optional Message */}
-          <div className="mb-5">
-            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-2">
+          {/* Message note */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: 8 }}>
               Invitation Note
             </label>
             <textarea
@@ -149,24 +235,46 @@ export default function InviteModal({ event, onClose }) {
             />
           </div>
 
-          {/* Actions: Send & Copy Link */}
-          <div className="flex gap-2.5">
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 10 }}>
             <button
               onClick={handleCopyLink}
-              className="btn-secondary flex-1 py-3 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              className="btn-secondary"
+              style={{
+                flex: 1,
+                padding: '13px 12px',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                borderRadius: '9999px',
+              }}
             >
-              {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+              {copied ? <Check size={14} style={{ color: '#10B981' }} /> : <Copy size={14} />}
               <span>{copied ? 'Link Copied!' : 'Copy Event Link'}</span>
             </button>
 
             <button
               onClick={handleSendInvites}
               disabled={sending || sent || emails.length === 0}
-              className={`flex-1 py-3 text-xs flex items-center justify-center gap-1.5 rounded-xl transition-colors cursor-pointer ${
-                sent
-                  ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800'
-                  : 'btn-primary'
-              }`}
+              style={{
+                flex: 1,
+                padding: '13px 12px',
+                fontSize: 13,
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                borderRadius: '9999px',
+                cursor: sending || sent || emails.length === 0 ? 'not-allowed' : 'pointer',
+                border: 'none',
+                transition: 'all 0.15s ease',
+                backgroundColor: sent ? '#EDFAF4' : '#FF5A5F',
+                color: sent ? '#10B981' : '#FFFFFF',
+                boxShadow: sent ? 'none' : '0 2px 8px rgba(255,90,95,0.30)',
+              }}
             >
               {sending ? (
                 <Loader2 size={15} className="animate-spin" />
@@ -178,7 +286,7 @@ export default function InviteModal({ event, onClose }) {
               ) : (
                 <>
                   <Send size={14} />
-                  <span>Send Invites ({emails.length})</span>
+                  <span>Send ({emails.length})</span>
                 </>
               )}
             </button>

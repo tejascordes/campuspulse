@@ -15,6 +15,21 @@ import { societiesApi, eventsApi, postsApi } from '../api.js'
 import EventCard from './EventCard.jsx'
 import PostCard from './PostCard.jsx'
 
+/** Deterministic gradient based on society name first char */
+function getSocietyGradient(name = '') {
+  const gradients = [
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%)',
+    'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+    'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)',
+    'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+    'linear-gradient(135deg, #00A699 0%, #007A70 100%)',
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  ]
+  const idx = name.charCodeAt(0) % gradients.length
+  return gradients[idx]
+}
+
 export default function SocietyHub({ societyName, onClose }) {
   const [activeTab, setActiveTab] = useState('events') // 'events' | 'posts' | 'about'
   const [society, setSociety] = useState(null)
@@ -45,6 +60,7 @@ export default function SocietyHub({ societyName, onClose }) {
   }, [societyName])
 
   const initials = societyName?.slice(0, 2).toUpperCase()
+  const heroGradient = getSocietyGradient(societyName)
 
   const tabs = [
     { id: 'events', label: 'Events', count: events.length, icon: Calendar },
@@ -54,76 +70,121 @@ export default function SocietyHub({ societyName, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex flex-col justify-end md:justify-center items-center p-0 md:p-6" style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}>
-        {/* Modal Container */}
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 50,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0,0,0,0.55)',
+          padding: 0,
+        }}
+        className="md:justify-center md:p-6"
+      >
+        {/* Modal */}
         <motion.div
-          className="w-full max-w-xl md:max-w-3xl h-[92vh] md:h-[86vh] flex flex-col overflow-hidden relative rounded-t-2xl md:rounded-2xl bg-[#09090b] border border-[#27272a] shadow-2xl"
+          style={{
+            width: '100%',
+            maxWidth: 672,
+            height: '92vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            position: 'relative',
+            borderRadius: '20px 20px 0 0',
+            backgroundColor: '#FFFFFF',
+            boxShadow: '0 -8px 48px rgba(0,0,0,0.20)',
+          }}
+          className="md:rounded-2xl md:h-[86vh]"
           initial={{ y: '100%', opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: '100%', opacity: 0 }}
           transition={{ type: 'spring', damping: 30, stiffness: 350 }}
         >
-          {/* Header */}
+          {/* Hero Banner */}
           <div
-            className="p-5 pb-3 flex-shrink-0 bg-[#121215] border-b border-[#27272a]"
+            style={{
+              background: heroGradient,
+              padding: '0 20px 0',
+              flexShrink: 0,
+              position: 'relative',
+            }}
           >
-            {/* Top Bar: Drag handle & Close */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="drag-handle !mb-0 md:hidden" />
-              <div className="hidden md:block text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                Society Hub
-              </div>
+            {/* Close button — top-right, white circle */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 16 }}>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46] cursor-pointer"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '9999px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: 'rgba(255,255,255,0.3)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1.5px solid rgba(255,255,255,0.5)',
+                  color: '#FFFFFF',
+                }}
               >
-                <X size={16} />
+                <X size={15} />
               </button>
             </div>
 
-            {/* Profile Info */}
-            <div className="flex items-start gap-3.5">
+            {/* Society avatar + name */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, padding: '20px 0 0' }}>
               <div
-                className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-zinc-100 flex-shrink-0 bg-[#18181b] border border-[#27272a]"
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '9999px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 20,
+                  fontWeight: 900,
+                  color: '#FFFFFF',
+                  backgroundColor: 'rgba(255,255,255,0.22)',
+                  backdropFilter: 'blur(8px)',
+                  border: '2.5px solid rgba(255,255,255,0.5)',
+                  flexShrink: 0,
+                  letterSpacing: '-0.01em',
+                }}
               >
                 {initials}
               </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-lg md:text-xl font-bold text-zinc-100 truncate">
-                    {society?.name || societyName}
-                  </h2>
-                  <button
-                    onClick={() => setIsFollowing(!isFollowing)}
-                    className={`px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                      isFollowing
-                        ? 'btn-secondary text-zinc-300'
-                        : 'btn-primary'
-                    }`}
-                  >
-                    {isFollowing ? (
-                      <>
-                        <UserCheck size={13} />
-                        <span>Following</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus size={13} />
-                        <span>Follow</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2 mt-1">
+              <div style={{ paddingBottom: 2 }}>
+                <h2
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 900,
+                    color: '#FFFFFF',
+                    margin: 0,
+                    letterSpacing: '-0.02em',
+                    textShadow: '0 1px 4px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  {society?.name || societyName}
+                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                   <span
-                    className="text-[11px] font-medium px-2 py-0.5 rounded-md border border-[#27272a] text-zinc-400"
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: '2px 10px',
+                      borderRadius: '9999px',
+                      backgroundColor: 'rgba(255,255,255,0.25)',
+                      color: '#FFFFFF',
+                    }}
                   >
                     {society?.category || 'Campus Society'}
                   </span>
                   {society?.follower_count && (
-                    <span className="text-xs text-zinc-500">
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
                       {society.follower_count} followers
                     </span>
                   )}
@@ -131,81 +192,168 @@ export default function SocietyHub({ societyName, onClose }) {
               </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex gap-2 mt-4">
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab.id
-                const Icon = tab.icon
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-                      isActive
-                        ? 'bg-zinc-100 text-zinc-950 font-semibold'
-                        : 'bg-[#18181b] text-zinc-400 hover:text-zinc-200 border border-[#27272a] hover:border-[#3f3f46]'
-                    }`}
-                  >
-                    <Icon size={13} />
-                    <span>{tab.label}</span>
-                    {tab.count !== null && (
-                      <span className={`text-[10px] px-1 rounded ${isActive ? 'bg-zinc-300 text-zinc-900 font-bold' : 'bg-[#27272a] text-zinc-400'}`}>
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
+            {/* Follow button row */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 0 16px' }}>
+              <button
+                onClick={() => setIsFollowing(!isFollowing)}
+                style={{
+                  padding: '8px 20px',
+                  borderRadius: '9999px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  border: 'none',
+                  backgroundColor: isFollowing ? 'rgba(255,255,255,0.25)' : '#FFFFFF',
+                  color: isFollowing ? '#FFFFFF' : '#222222',
+                  backdropFilter: isFollowing ? 'blur(8px)' : 'none',
+                }}
+              >
+                {isFollowing ? (
+                  <>
+                    <UserCheck size={14} />
+                    <span>Following</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus size={14} />
+                    <span>Follow</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Content Body */}
-          <div className="flex-1 overflow-y-auto p-4 pb-20 bg-[#09090b]">
+          {/* Tabs — Airbnb underline style */}
+          <div
+            style={{
+              display: 'flex',
+              borderBottom: '1px solid #EBEBEB',
+              backgroundColor: '#FFFFFF',
+              flexShrink: 0,
+              padding: '0 20px',
+            }}
+          >
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    padding: '12px 4px',
+                    fontSize: 13,
+                    fontWeight: isActive ? 700 : 500,
+                    color: isActive ? '#222222' : '#767676',
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: isActive ? '2px solid #FF5A5F' : '2px solid transparent',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    marginBottom: -1,
+                  }}
+                >
+                  <Icon size={14} />
+                  <span>{tab.label}</span>
+                  {tab.count !== null && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        padding: '1px 6px',
+                        borderRadius: '9999px',
+                        fontWeight: 700,
+                        backgroundColor: isActive ? '#FF5A5F' : '#F0F0F0',
+                        color: isActive ? '#FFFFFF' : '#767676',
+                      }}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Content body */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px', backgroundColor: '#F7F7F7' }}>
             {loading ? (
-              <div className="flex flex-col items-center justify-center h-48 gap-2.5">
-                <Loader2 size={24} className="animate-spin text-zinc-500" />
-                <p className="text-xs text-zinc-500">Loading society hub...</p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 200, gap: 10 }}>
+                <Loader2 size={24} className="animate-spin" style={{ color: '#B0B0B0' }} />
+                <p style={{ fontSize: 13, color: '#B0B0B0' }}>Loading society hub…</p>
               </div>
             ) : activeTab === 'events' ? (
               events.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-48 text-center gap-1.5 bg-[#121215] border border-[#27272a] rounded-xl p-6">
-                  <p className="text-sm font-medium text-zinc-300">No upcoming events</p>
-                  <p className="text-xs text-zinc-500">Check back later for newly announced events.</p>
+                <div
+                  className="surface-card"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: 200,
+                    textAlign: 'center',
+                    gap: 6,
+                    border: '1px solid #EBEBEB',
+                  }}
+                >
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#222222' }}>No upcoming events</p>
+                  <p style={{ fontSize: 12, color: '#B0B0B0' }}>Check back later for newly announced events.</p>
                 </div>
               ) : (
                 events.map((ev) => <EventCard key={ev.id} event={ev} />)
               )
             ) : activeTab === 'posts' ? (
               posts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-48 text-center gap-1.5 bg-[#121215] border border-[#27272a] rounded-xl p-6">
-                  <p className="text-sm font-medium text-zinc-300">No posts yet</p>
-                  <p className="text-xs text-zinc-500">This society hasn't shared any updates.</p>
+                <div
+                  className="surface-card"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: 200,
+                    textAlign: 'center',
+                    gap: 6,
+                    border: '1px solid #EBEBEB',
+                  }}
+                >
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#222222' }}>No posts yet</p>
+                  <p style={{ fontSize: 12, color: '#B0B0B0' }}>This society hasn&rsquo;t shared any updates.</p>
                 </div>
               ) : (
                 posts.map((p) => <PostCard key={p.id} post={p} />)
               )
             ) : (
-              /* About Tab */
-              <div className="space-y-3">
-                <div className="bg-[#121215] border border-[#27272a] rounded-xl p-4">
-                  <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+              /* About tab */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div className="surface-card" style={{ padding: 18, border: '1px solid #EBEBEB' }}>
+                  <h4 style={{ fontSize: 11, fontWeight: 800, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>
                     About Society
                   </h4>
-                  <p className="text-xs text-zinc-300 leading-relaxed">
+                  <p style={{ fontSize: 14, color: '#484848', lineHeight: 1.6, margin: 0 }}>
                     {society?.description || 'Official student society at Thapar Institute.'}
                   </p>
                 </div>
 
-                <div className="bg-[#121215] border border-[#27272a] rounded-xl p-4 space-y-2.5 text-xs text-zinc-300">
+                <div className="surface-card" style={{ padding: 18, border: '1px solid #EBEBEB' }}>
                   {society?.hub_location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin size={14} className="text-zinc-500" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, fontSize: 13, color: '#484848' }}>
+                      <MapPin size={15} style={{ color: '#B0B0B0', flexShrink: 0 }} />
                       <span>{society.hub_location}</span>
                     </div>
                   )}
                   {society?.meeting_schedule && (
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} className="text-zinc-500" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#484848' }}>
+                      <Clock size={15} style={{ color: '#B0B0B0', flexShrink: 0 }} />
                       <span>{society.meeting_schedule}</span>
                     </div>
                   )}

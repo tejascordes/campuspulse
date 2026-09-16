@@ -60,87 +60,186 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
       .slice(0, 2) || 'TU'
 
   return (
-    <div className="h-full w-full overflow-y-auto px-4 pt-6 pb-24 bg-[#09090b]">
-      <div className="max-w-xl mx-auto md:max-w-4xl w-full md:grid md:grid-cols-12 md:gap-6">
-        {/* Left Column: Profile Card, Stats & Sign Out */}
-        <div className="md:col-span-5 space-y-3.5 mb-3.5 md:mb-0">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-zinc-100">Profile</h1>
+    <div
+      className="h-full w-full overflow-y-auto"
+      style={{ backgroundColor: '#F7F7F7', padding: '0 16px 96px' }}
+    >
+      <div
+        style={{ maxWidth: '56rem', margin: '0 auto', width: '100%', paddingTop: 24 }}
+        className="md:grid md:grid-cols-12 md:gap-6"
+      >
+        {/* Left Column */}
+        <div className="md:col-span-5" style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 14 }}>
+
+          {/* Header row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 900, color: '#222222', margin: 0, letterSpacing: '-0.03em' }}>
+              Profile
+            </h1>
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors bg-[#121215] border border-[#27272a] hover:border-[#3f3f46] cursor-pointer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#767676',
+                backgroundColor: '#FFFFFF',
+                border: '1.5px solid #DDDDDD',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+              }}
             >
-              <LogOut size={13} />
+              <LogOut size={14} />
               <span>Sign Out</span>
             </button>
           </div>
 
-          {/* Avatar & User Info Card */}
+          {/* Avatar + User Info Card */}
           <div
-            className="p-4 rounded-xl bg-[#121215] border border-[#27272a] flex items-center gap-3.5"
+            className="surface-card"
+            style={{
+              padding: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
+              border: '1px solid #EBEBEB',
+            }}
           >
+            {/* Avatar with red ring */}
             <div
-              className="w-14 h-14 rounded-full flex items-center justify-center text-base font-bold text-zinc-100 flex-shrink-0 bg-[#18181b] border border-[#27272a]"
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: '9999px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 18,
+                fontWeight: 800,
+                color: '#FF5A5F',
+                flexShrink: 0,
+                backgroundColor: '#FFF5F5',
+                border: '2.5px solid #FF5A5F',
+                letterSpacing: '-0.01em',
+              }}
             >
               {initials}
             </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-base font-semibold text-zinc-100 truncate">{user?.name}</h2>
-              <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2
+                style={{
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: '#222222',
+                  margin: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {user?.name}
+              </h2>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: '#B0B0B0',
+                  margin: '3px 0 0',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {user?.email}
+              </p>
               {user?.bio && (
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{user.bio}</p>
+                <p style={{ fontSize: 12, color: '#767676', marginTop: 6, lineHeight: 1.5 }}>
+                  {user.bio}
+                </p>
               )}
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-3 gap-2.5">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             {STAT_CARDS.map((stat) => (
               <div
                 key={stat.label}
-                className="p-3 rounded-xl text-center bg-[#121215] border border-[#27272a]"
+                className="surface-card"
+                style={{
+                  padding: '14px 8px',
+                  textAlign: 'center',
+                  border: '1px solid #EBEBEB',
+                }}
               >
-                <p className="text-lg font-bold text-zinc-100">{stat.value}</p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">{stat.label}</p>
+                <p style={{ fontSize: 22, fontWeight: 900, color: '#FF5A5F', margin: 0, letterSpacing: '-0.03em' }}>
+                  {stat.value}
+                </p>
+                <p style={{ fontSize: 11, color: '#B0B0B0', margin: '3px 0 0', fontWeight: 600 }}>
+                  {stat.label}
+                </p>
               </div>
             ))}
           </div>
 
-          {/* Member Info */}
+          {/* Affiliation card */}
           <div
-            className="p-4 rounded-xl bg-[#121215] border border-[#27272a]"
+            className="surface-card"
+            style={{ padding: '14px 20px', border: '1px solid #EBEBEB' }}
           >
-            <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-1">
+            <p style={{ fontSize: 10, fontWeight: 800, color: '#B0B0B0', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>
               Campus Affiliation
             </p>
-            <p className="text-xs font-semibold text-zinc-200">
-              Thapar Institute of Engineering & Technology
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#222222', margin: 0 }}>
+              Thapar Institute of Engineering &amp; Technology
             </p>
           </div>
         </div>
 
-        {/* Right Column: Calendar Privacy Settings */}
+        {/* Right Column: Privacy Settings */}
         <div className="md:col-span-7">
           <div
-            className="p-4 md:p-5 rounded-xl bg-[#121215] border border-[#27272a]"
+            className="surface-card"
+            style={{ padding: 20, border: '1px solid #EBEBEB' }}
           >
-            <div className="flex items-center justify-between mb-3.5">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <h3 className="font-semibold text-zinc-100 text-sm">Calendar Privacy Default</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Control who sees events you add to schedule</p>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.01em' }}>
+                  Calendar Privacy
+                </h3>
+                <p style={{ fontSize: 12, color: '#B0B0B0', margin: '3px 0 0' }}>
+                  Control who sees events you add to schedule
+                </p>
               </div>
               <AnimatePresence>
-                {saving && <Loader2 size={14} className="animate-spin text-zinc-400" />}
+                {saving && <Loader2 size={15} className="animate-spin" style={{ color: '#B0B0B0' }} />}
                 {saved && (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                    <Check size={14} className="text-emerald-400" />
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '9999px',
+                      backgroundColor: '#EDFAF4',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Check size={14} style={{ color: '#10B981' }} />
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            <div className="flex flex-col gap-2.5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {PRIVACY_OPTIONS.map((opt) => {
                 const isActive = privacy === opt.value
                 const Icon = opt.icon
@@ -148,38 +247,79 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser }) {
                   <button
                     key={opt.value}
                     onClick={() => handlePrivacyChange(opt.value)}
-                    className="flex items-center justify-between p-3 rounded-xl text-left transition-colors cursor-pointer"
                     style={{
-                      backgroundColor: isActive ? '#18181b' : '#121215',
-                      border: `1px solid ${isActive ? '#52525b' : '#27272a'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '14px 16px',
+                      borderRadius: 12,
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      backgroundColor: isActive ? '#FFF5F5' : '#F7F7F7',
+                      border: isActive ? '1.5px solid #FF5A5F' : '1.5px solid #EBEBEB',
+                      boxShadow: isActive ? '0 2px 10px rgba(255,90,95,0.12)' : 'none',
                     }}
                   >
-                    <div className="flex items-center gap-3">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      {/* Icon circle */}
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                         style={{
-                          backgroundColor: '#18181b',
-                          border: '1px solid #27272a',
-                          color: isActive ? '#f4f4f5' : '#71717a',
+                          width: 38,
+                          height: 38,
+                          borderRadius: '9999px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          backgroundColor: isActive ? '#FF5A5F' : '#EBEBEB',
+                          color: isActive ? '#FFFFFF' : '#767676',
+                          transition: 'all 0.15s ease',
                         }}
                       >
-                        <Icon size={16} />
+                        <Icon size={17} />
                       </div>
                       <div>
                         <p
-                          className="text-xs font-semibold"
-                          style={{ color: isActive ? '#f4f4f5' : '#a1a1aa' }}
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            color: isActive ? '#222222' : '#484848',
+                            margin: 0,
+                          }}
                         >
                           {opt.label}
                         </p>
-                        <p className="text-[11px] text-zinc-500">{opt.sub}</p>
+                        <p style={{ fontSize: 12, color: '#B0B0B0', margin: '2px 0 0' }}>
+                          {opt.sub}
+                        </p>
                       </div>
                     </div>
-                    {isActive && (
-                      <div className="w-4 h-4 rounded-full flex items-center justify-center bg-zinc-100 text-zinc-950">
-                        <Check size={11} strokeWidth={3} />
-                      </div>
-                    )}
+                    {/* Radio indicator */}
+                    <div
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: '9999px',
+                        border: isActive ? '2px solid #FF5A5F' : '2px solid #DDDDDD',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {isActive && (
+                        <div
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: '9999px',
+                            backgroundColor: '#FF5A5F',
+                          }}
+                        />
+                      )}
+                    </div>
                   </button>
                 )
               })}

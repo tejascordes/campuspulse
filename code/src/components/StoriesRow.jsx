@@ -21,29 +21,51 @@ export default function StoriesRow({ onSocietyClick }) {
   }, [])
 
   return (
-    <div className="w-full overflow-x-auto no-scrollbar py-2 flex items-center gap-3 select-none">
+    <div className="w-full overflow-x-auto no-scrollbar py-3 flex items-center gap-4 select-none">
       {/* Today / Highlights Bubble */}
       <button
-        className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer bg-transparent border-none p-0 group"
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0, cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }}
         onClick={() => onSocietyClick?.('CCS')}
+        className="group"
       >
-        <div className="relative">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[#121215] border border-[#27272a] group-hover:border-[#3f3f46] transition-colors">
-            <Flame size={18} className="text-zinc-300 group-hover:text-white" />
+        <div style={{ position: 'relative' }}>
+          <div
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: '9999px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, #FF5A5F 0%, #FC642D 100%)',
+              boxShadow: '0 2px 10px rgba(255,90,95,0.30)',
+              transition: 'box-shadow 0.2s ease',
+            }}
+          >
+            <Flame size={20} style={{ color: '#FFFFFF' }} />
           </div>
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-[#09090b]" />
+          <span
+            style={{
+              position: 'absolute',
+              top: -2,
+              right: -2,
+              width: 12,
+              height: 12,
+              borderRadius: '9999px',
+              backgroundColor: '#FF5A5F',
+              border: '2px solid #F7F7F7',
+            }}
+          />
         </div>
-        <span className="text-[11px] font-medium text-zinc-400 group-hover:text-zinc-200 transition-colors">
-          Today
-        </span>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#484848' }}>Today</span>
       </button>
 
       {/* Society Story Bubbles */}
       {loading
         ? Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-1.5 flex-shrink-0 animate-pulse">
-              <div className="w-12 h-12 rounded-full bg-[#121215] border border-[#27272a]" />
-              <div className="w-8 h-2 rounded bg-[#121215]" />
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0 }} className="animate-pulse">
+              <div style={{ width: 56, height: 56, borderRadius: '9999px', backgroundColor: '#EBEBEB' }} />
+              <div style={{ width: 32, height: 8, borderRadius: 4, backgroundColor: '#EBEBEB' }} />
             </div>
           ))
         : societies.map((soc) => {
@@ -52,26 +74,65 @@ export default function StoriesRow({ onSocietyClick }) {
             return (
               <button
                 key={soc.name}
-                className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer bg-transparent border-none p-0 group"
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0, cursor: 'pointer', background: 'transparent', border: 'none', padding: 0 }}
                 onClick={() => onSocietyClick?.(soc.name)}
               >
-                <div className="relative">
+                <div style={{ position: 'relative' }}>
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xs tracking-wider transition-colors ${
-                      hasEvents
-                        ? 'bg-[#18181b] border border-zinc-400 text-zinc-100 group-hover:border-zinc-200'
-                        : 'bg-[#121215] border border-[#27272a] text-zinc-400 group-hover:border-[#3f3f46] group-hover:text-zinc-200'
-                    }`}
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '9999px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                      fontSize: 13,
+                      letterSpacing: '0.02em',
+                      backgroundColor: hasEvents ? '#FFF5F5' : '#F7F7F7',
+                      border: hasEvents ? '2.5px solid #FF5A5F' : '2px solid #DDDDDD',
+                      color: hasEvents ? '#FF5A5F' : '#767676',
+                      transition: 'all 0.15s ease',
+                    }}
                   >
                     {initials}
                   </div>
                   {hasEvents && (
-                    <span className="absolute -top-0.5 -right-0.5 px-1 min-w-[14px] h-[14px] rounded-full flex items-center justify-center text-[9px] font-bold bg-zinc-100 text-zinc-950 border border-[#09090b]">
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: -2,
+                        right: -2,
+                        minWidth: 16,
+                        height: 16,
+                        borderRadius: '9999px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 9,
+                        fontWeight: 800,
+                        backgroundColor: '#FF5A5F',
+                        color: '#FFFFFF',
+                        border: '2px solid #F7F7F7',
+                        padding: '0 3px',
+                      }}
+                    >
                       {soc.event_count}
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] font-medium max-w-[56px] truncate text-center text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    maxWidth: 56,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center',
+                    color: '#484848',
+                  }}
+                >
                   {soc.name}
                 </span>
               </button>
@@ -80,4 +141,3 @@ export default function StoriesRow({ onSocietyClick }) {
     </div>
   )
 }
-

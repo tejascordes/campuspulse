@@ -50,32 +50,51 @@ export default function App() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col bg-[#09090b] text-zinc-100 overflow-hidden">
+    <div className="h-full w-full flex flex-col overflow-hidden" style={{ backgroundColor: '#F7F7F7' }}>
+      {/* Demo Mode Banner */}
       {isDemoMode && !hideDemoBanner && (
         <div
-          className="w-full bg-[#121215] border-b border-[#27272a] px-3 py-1 text-[11px] flex items-center justify-between z-30 flex-shrink-0 text-zinc-400"
+          className="w-full px-3 py-1.5 flex items-center justify-between z-30 flex-shrink-0"
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderBottom: '1px solid #EBEBEB',
+            fontSize: '11px',
+            color: '#767676',
+          }}
         >
-          <div className="max-w-xl mx-auto md:max-w-4xl w-full flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div style={{ maxWidth: '56rem', margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '9999px',
+                  backgroundColor: '#FF5A5F',
+                  display: 'inline-block',
+                  animation: 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite',
+                }}
+              />
               <span>Interactive Demo Mode (Offline Preview)</span>
             </div>
             <button
               onClick={() => setHideDemoBanner(true)}
-              className="text-zinc-500 hover:text-zinc-300 text-xs px-1 cursor-pointer"
+              style={{ color: '#B0B0B0', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '0 4px' }}
             >
               ✕
             </button>
           </div>
         </div>
       )}
+
+      {/* Main content area */}
       <div className="flex-1 overflow-hidden relative w-full">
         {tab === 'feed' && <FeedView token={token} user={user} />}
         {tab === 'map' && <MapView token={token} />}
         {tab === 'profile' && <ProfileView user={user} token={token} onLogout={handleLogout} onUpdateUser={updateUser} />}
       </div>
+
+      {/* Bottom Navigation */}
       <Navbar activeTab={tab} onTabChange={setTab} />
     </div>
   )
 }
-

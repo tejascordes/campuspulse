@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+
 
 const FILTERS = [
   'All',
@@ -15,7 +15,7 @@ export default function FilterPills({ active, onChange }) {
       className="flex gap-2 overflow-x-auto py-2 no-scrollbar"
       style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
     >
-      {FILTERS.map((cat, i) => {
+      {FILTERS.map((cat) => {
         const isActive = active === cat
         return (
           <button
@@ -30,4 +30,3 @@ export default function FilterPills({ active, onChange }) {
     </div>
   )
 }
-
