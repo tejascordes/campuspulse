@@ -14,8 +14,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-// Dark tile layer — Airbnb Explore keeps dark map for high contrast
-const DARK_TILE = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+// Dark tile layer with CARTO API Key to remove watermark
+const CARTO_API_KEY = import.meta.env.VITE_CARTO_API_KEY || 'cb1_3gif_1_36cb4736549ba6b2eb8d936b'
+const DARK_TILE = `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
 
 const CATEGORIES = ['Society Hub', 'Recreational', 'Academic', 'Food']
 
