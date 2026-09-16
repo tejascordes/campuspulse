@@ -1,0 +1,9 @@
+﻿{
+  "name": "campuspulse",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm --prefix code run build",
+    "dev": "npm --prefix code run dev"
+  }
+}
