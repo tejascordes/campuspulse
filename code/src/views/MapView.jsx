@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, CircleMarker } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, Loader2, Compass } from 'lucide-react'
 import { mapApi } from '../api.js'
 import BottomSheet from '../components/BottomSheet.jsx'
 
@@ -58,6 +58,7 @@ export default function MapView({ token: _token }) {
   const [selectedPin, setSelectedPin] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
+  const [rotation, setRotation] = useState(10.5)
 
   useEffect(() => {
     mapApi
@@ -100,13 +101,56 @@ export default function MapView({ token: _token }) {
             borderColor: '#DDDDDD',
           }}
         >
+          {/* Map Orientation / Rotation Controls */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 12,
+              zIndex: 30,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <button
+              onClick={() => setRotation((prev) => (prev === 0 ? 10.5 : 0))}
+              title={rotation === 0 ? 'Align map to Thapar campus grid' : 'Reset map to True North'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: '9999px',
+                fontSize: 12,
+                fontWeight: 600,
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <Compass
+                size={15}
+                style={{
+                  color: '#FF385C',
+                  transform: `rotate(${-rotation}deg)`,
+                  transition: 'transform 0.4s ease',
+                }}
+              />
+              <span>{rotation !== 0 ? 'Campus Aligned' : 'North Up'}</span>
+            </button>
+          </div>
+
           {/* Mobile floating search pill */}
           <div
             style={{
               position: 'absolute',
               top: 16,
               left: 12,
-              right: 12,
+              right: 160,
               zIndex: 30,
             }}
             className="md:hidden"
@@ -136,7 +180,7 @@ export default function MapView({ token: _token }) {
                   fontFamily: 'inherit',
                   fontWeight: 500,
                 }}
-                placeholder="Search campus buildings, hubs…"
+                placeholder="Search campus…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -179,27 +223,40 @@ export default function MapView({ token: _token }) {
             ))}
           </div>
 
-          {/* Leaflet Map */}
+          {/* Rotated Leaflet Map Container */}
           {!loading && (
-            <MapContainer
-              center={[30.3562, 76.3648]}
-              zoom={16}
-              style={{ height: '100%', width: '100%' }}
-              zoomControl={false}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-25%',
+                left: '-25%',
+                width: '150%',
+                height: '150%',
+                transform: `rotate(${rotation}deg)`,
+                transformOrigin: '50% 50%',
+                transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
             >
-              <TileLayer
-                attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                url={LIGHT_TILE}
-              />
-              {filteredPins.map((pin) => (
-                <PinMarker
-                  key={pin.id}
-                  pin={pin}
-                  isSelected={selectedPin?.id === pin.id}
-                  onClick={handlePinClick}
+              <MapContainer
+                center={[30.3562, 76.3648]}
+                zoom={16}
+                style={{ height: '100%', width: '100%' }}
+                zoomControl={false}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                  url={LIGHT_TILE}
                 />
-              ))}
-            </MapContainer>
+                {filteredPins.map((pin) => (
+                  <PinMarker
+                    key={pin.id}
+                    pin={pin}
+                    isSelected={selectedPin?.id === pin.id}
+                    onClick={handlePinClick}
+                  />
+                ))}
+              </MapContainer>
+            </div>
           )}
 
           {loading && (
