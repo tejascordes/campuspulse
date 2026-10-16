@@ -766,6 +766,7 @@ class MockStore {
         this.applications = parsed.applications || SEED_APPLICATIONS
         this.comments = parsed.comments || SEED_COMMENTS
         this.flairRequests = parsed.flairRequests || SEED_FLAIR_REQUESTS
+        this.savedCalendarEvents = parsed.savedCalendarEvents || []
         this.user = parsed.user || DEFAULT_USER
         return
       }
@@ -780,6 +781,7 @@ class MockStore {
     this.applications = [...SEED_APPLICATIONS]
     this.comments = [...SEED_COMMENTS]
     this.flairRequests = [...SEED_FLAIR_REQUESTS]
+    this.savedCalendarEvents = []
     this.user = { ...DEFAULT_USER }
     this.persist()
   }
@@ -797,6 +799,7 @@ class MockStore {
           applications: this.applications,
           comments: this.comments,
           flairRequests: this.flairRequests,
+          savedCalendarEvents: this.savedCalendarEvents,
           user: this.user,
         })
       )
@@ -869,6 +872,9 @@ class MockStore {
     const ev = this.events.find((e) => e.id === Number(id))
     if (ev) {
       ev.is_registered = register
+      if (!register) {
+        ev.is_saved = false
+      }
       ev.registered_count = register
         ? ev.registered_count + 1
         : Math.max(0, ev.registered_count - 1)
@@ -876,6 +882,49 @@ class MockStore {
       return ev
     }
     return null
+  }
+
+  saveCalendarEvent(data) {
+    if (!this.savedCalendarEvents) this.savedCalendarEvents = []
+    const title = (data.event_title || data.title || "").trim()
+    // Also mark matching event in this.events as saved
+    const matched = this.events.find(
+      (e) => e.title.toLowerCase() === title.toLowerCase() || (data.event_id && e.id === Number(data.event_id))
+    )
+    if (matched) {
+      matched.is_saved = true
+      matched.calendar_visibility = data.visibility || "CLOSE_FRIENDS"
+    } else if (title) {
+      const parts = (data.description || "").split("•").map((s) => s.trim())
+      this.savedCalendarEvents.push({
+        id: Date.now(),
+        title,
+        society_name: data.society_name || parts[0] || "Campus Event",
+        venue: data.venue || parts[1] || "Thapar Campus",
+        event_date: data.event_date || new Date().toISOString(),
+        is_saved: true,
+        is_registered: false,
+        calendar_visibility: data.visibility || "CLOSE_FRIENDS",
+      })
+    }
+    this.persist()
+    return { success: true, message: "Event added to campus calendar" }
+  }
+
+  getUserCalendarEvents() {
+    // Ensure at least 3 default events show up if user hasn't registered/saved any yet
+    const registeredOrSaved = (this.events || []).filter((e) => e.is_registered || e.is_saved)
+    const extraSaved = this.savedCalendarEvents || []
+    let combined = [...registeredOrSaved, ...extraSaved]
+    if (combined.length < 3 && Array.isArray(this.events)) {
+      const defaults = this.events.filter((e) => [1, 3, 5].includes(e.id))
+      for (const d of defaults) {
+        if (!combined.some((c) => c.id === d.id)) {
+          combined.push({ ...d, is_saved: true })
+        }
+      }
+    }
+    return combined.sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
   }
 
   getSocieties() {
