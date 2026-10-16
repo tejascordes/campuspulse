@@ -16,9 +16,11 @@ import {
   CheckCircle2,
   XCircle,
   ChevronRight,
+  Calendar as CalendarIcon,
+  MapPin,
   Image as ImageIcon,
 } from 'lucide-react'
-import { authApi, societiesApi } from '../api.js'
+import { authApi, societiesApi, eventsApi } from '../api.js'
 import SocietyFlairBadge from '../components/SocietyFlairBadge.jsx'
 
 const PRIVACY_OPTIONS = [
@@ -102,6 +104,9 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
 
   // Flair Approval Queue State
   const [flairRequests, setFlairRequests] = useState([])
+  // Saved & Registered Calendar Events State
+  const [calendarEvents, setCalendarEvents] = useState([])
+
   // Approver authority filter: auto-detect from user role, or allow testing each level of the hierarchy
   const defaultApproverLevel = isApprovedSociety || isAdmin
     ? 'SOCIETY_ACCOUNT'
@@ -129,7 +134,19 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
     authApi.getFlairRequests().then((list) => {
       if (Array.isArray(list)) setFlairRequests(list)
     })
+    eventsApi.getSavedCalendarEvents().then((evList) => {
+      if (Array.isArray(evList)) setCalendarEvents(evList)
+    })
   }, [])
+
+  const handleRemoveCalendarEvent = async (evId) => {
+    try {
+      await eventsApi.unregister(evId)
+    } catch {
+      // ignore
+    }
+    setCalendarEvents((prev) => prev.filter((item) => item.id !== evId))
+  }
 
   const currentTierObj = HIERARCHY_TIERS.find((t) => t.id === flairTier) || HIERARCHY_TIERS[2]
 
@@ -680,6 +697,228 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
             <p style={{ fontSize: 13, fontWeight: 700, color: '#222222', margin: 0 }}>
               Thapar Institute of Engineering &amp; Technology
             </p>
+          </div>
+
+          {/* Saved & Registered Calendar Events Card */}
+          <div
+            className="surface-card"
+            style={{
+              padding: '18px 18px',
+              border: '1px solid #DDDDDD',
+              backgroundColor: '#FFFFFF',
+              borderRadius: 16,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: '9999px',
+                    backgroundColor: '#FFF5F5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FF385C',
+                    flexShrink: 0,
+                  }}
+                >
+                  <CalendarIcon size={15} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 14, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.01em' }}>
+                    Saved &amp; Registered Events
+                  </h3>
+                  <p style={{ fontSize: 11, color: '#717171', margin: '1px 0 0' }}>
+                    Your upcoming campus calendar schedule
+                  </p>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#FFF5F5',
+                  color: '#FF385C',
+                  border: '1px solid #FECDD3',
+                }}
+              >
+                {calendarEvents.length}
+              </span>
+            </div>
+
+            {calendarEvents.length === 0 ? (
+              <div
+                style={{
+                  padding: '18px 14px',
+                  textAlign: 'center',
+                  borderRadius: 12,
+                  backgroundColor: '#F9FAFB',
+                  border: '1px dashed #DDDDDD',
+                }}
+              >
+                <p style={{ fontSize: 12.5, fontWeight: 700, color: '#4B5563', margin: 0 }}>
+                  No saved or registered events yet
+                </p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', margin: '4px 0 10px' }}>
+                  Register or save events from the Feed to track them here.
+                </p>
+                {onNavigate && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('feed')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '9999px',
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      backgroundColor: '#FF385C',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Explore Events
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {calendarEvents.map((ev) => {
+                  const dt = new Date(ev.event_date)
+                  const monthShort = dt.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+                  const dayNum = dt.getDate()
+                  const weekdayTime = dt.toLocaleString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                  })
+
+                  return (
+                    <div
+                      key={ev.id}
+                      style={{
+                        padding: '11px 12px',
+                        borderRadius: 12,
+                        border: '1px solid #E5E7EB',
+                        backgroundColor: '#FAFAFA',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 11,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {/* Calendar Date Box */}
+                      <div
+                        style={{
+                          width: 44,
+                          minHeight: 46,
+                          borderRadius: 10,
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid #DDDDDD',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                        }}
+                      >
+                        <span style={{ fontSize: 9.5, fontWeight: 800, color: '#FF385C', letterSpacing: '0.04em' }}>
+                          {monthShort}
+                        </span>
+                        <span style={{ fontSize: 15, fontWeight: 900, color: '#222222', lineHeight: 1.1 }}>
+                          {dayNum}
+                        </span>
+                      </div>
+
+                      {/* Event Info: Title, Where, Day/Time */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 2 }}>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 800,
+                              color: '#FF385C',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                            }}
+                          >
+                            {ev.society_name || 'Campus Event'}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 9.5,
+                              fontWeight: 700,
+                              padding: '1px 6px',
+                              borderRadius: '9999px',
+                              backgroundColor: ev.is_registered ? '#ECFDF5' : '#EFF6FF',
+                              color: ev.is_registered ? '#059669' : '#2563EB',
+                              border: `1px solid ${ev.is_registered ? '#A7F3D0' : '#BFDBFE'}`,
+                            }}
+                          >
+                            {ev.is_registered ? 'Registered' : 'Saved'}
+                          </span>
+                        </div>
+
+                        <h4
+                          style={{
+                            fontSize: 12.5,
+                            fontWeight: 800,
+                            color: '#222222',
+                            margin: '0 0 4px',
+                            lineHeight: 1.3,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={ev.title}
+                        >
+                          {ev.title}
+                        </h4>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#4B5563', fontWeight: 600 }}>
+                            <MapPin size={11} style={{ color: '#FF385C', flexShrink: 0 }} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {ev.venue || 'Thapar Campus'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, fontSize: 10.5, color: '#717171' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Clock size={10.5} style={{ flexShrink: 0 }} />
+                              <span>{weekdayTime}</span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCalendarEvent(ev.id)}
+                              title="Remove from calendar"
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                color: '#9CA3AF',
+                                fontSize: 10.5,
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                padding: '0 2px',
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 

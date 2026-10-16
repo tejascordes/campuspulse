@@ -369,8 +369,29 @@ export const eventsApi = {
     return res.data
   },
   saveToCalendar: async (calendarData) => {
-    const res = await apiClient.post('/api/calendar/add', calendarData)
-    return res.data
+    mockStore.saveCalendarEvent(calendarData || {})
+    try {
+      const res = await apiClient.post('/api/calendar/add', calendarData)
+      return res.data
+    } catch {
+      return { success: true, message: 'Event added to campus calendar' }
+    }
+  },
+  getSavedCalendarEvents: async () => {
+    try {
+      const res = await apiClient.get('/api/events')
+      const apiEvents = Array.isArray(res.data) ? res.data.filter((e) => e.is_registered || e.is_saved) : []
+      const localEvents = mockStore.getUserCalendarEvents()
+      const merged = [...localEvents]
+      for (const ae of apiEvents) {
+        if (!merged.some((m) => m.id === ae.id || m.title === ae.title)) {
+          merged.push(ae)
+        }
+      }
+      return merged.sort((a, b) => new Date(a.event_date) - new Date(b.event_date))
+    } catch {
+      return mockStore.getUserCalendarEvents()
+    }
   },
 }
 
