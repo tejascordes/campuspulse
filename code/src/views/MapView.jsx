@@ -17,7 +17,7 @@ L.Icon.Default.mergeOptions({
 const BASE_WIDTH = 1024
 const BASE_HEIGHT = 576
 
-const CATEGORIES = ['Society Hub', 'Academic', 'Recreational', 'Food', 'Sports']
+const CATEGORIES = ['Hostels', 'Academic', 'Society Hub', 'Food', 'Sports', 'Recreational']
 
 function getRotationConfig(rotation) {
   switch (rotation) {

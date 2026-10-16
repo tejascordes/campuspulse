@@ -477,8 +477,13 @@ export const mapApi = {
     try {
       const res = await apiClient.get('/api/map/pins')
       const data = res.data
-      // If backend DB still holds legacy GPS lat/lng (approx 30.35, 76.36), use calibrated campus map coordinates
-      if (Array.isArray(data) && data.length > 0 && data[0].latitude < 60 && data[0].longitude < 90) {
+      // If backend DB still holds legacy GPS lat/lng or un-grouped pins without 'Hostels', use grouped campus pins
+      if (
+        !Array.isArray(data) ||
+        data.length === 0 ||
+        (data[0].latitude < 60 && data[0].longitude < 90) ||
+        !data.some((p) => p.category === 'Hostels')
+      ) {
         return mockStore.getPins()
       }
       return data
