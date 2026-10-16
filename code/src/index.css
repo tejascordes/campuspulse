@@ -292,9 +292,9 @@ body {
   box-shadow: 0 0 0 3px rgba(255,90,95,0.12);
 }
 
-/* ── Leaflet overrides (keep dark map tile with light UI) ─────────────────── */
+/* ── Leaflet overrides (match campus map pastel green background) ─────────── */
 .leaflet-container {
-  background: #1A1A1A !important;
+  background: #C0DDA5 !important;
   font-family: 'DM Sans', sans-serif !important;
 }
 .leaflet-control-attribution {

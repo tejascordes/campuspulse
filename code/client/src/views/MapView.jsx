@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { MapContainer, ImageOverlay, CircleMarker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Search, Loader2, Compass, ZoomIn, ZoomOut } from 'lucide-react'
+import { Search, Loader2, Compass, ZoomIn, ZoomOut, RotateCw } from 'lucide-react'
 import { mapApi } from '../api.js'
 import BottomSheet from '../components/BottomSheet.jsx'
 
@@ -14,108 +14,82 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-const MAP_WIDTH = 1024
-const MAP_HEIGHT = 559
-const MAP_BOUNDS = [[0, 0], [MAP_HEIGHT, MAP_WIDTH]]
+const BASE_WIDTH = 1024
+const BASE_HEIGHT = 576
 
 const CATEGORIES = ['Society Hub', 'Academic', 'Recreational', 'Food', 'Sports']
 
-function MapPanController({ selectedPin }) {
+function getRotationConfig(rotation) {
+  switch (rotation) {
+    case 90:
+      return {
+        imageUrl: '/campus_map_90cw.jpg',
+        bounds: [
+          [0, 0],
+          [BASE_WIDTH, BASE_HEIGHT],
+        ],
+        transformCoords: (lat, lng) => [BASE_WIDTH - lng, lat],
+      }
+    case 270:
+      return {
+        imageUrl: '/campus_map_90ccw.jpg',
+        bounds: [
+          [0, 0],
+          [BASE_WIDTH, BASE_HEIGHT],
+        ],
+        transformCoords: (lat, lng) => [lng, BASE_HEIGHT - lat],
+      }
+    case 180:
+      return {
+        imageUrl: '/campus_map_180.jpg',
+        bounds: [
+          [0, 0],
+          [BASE_HEIGHT, BASE_WIDTH],
+        ],
+        transformCoords: (lat, lng) => [BASE_HEIGHT - lat, BASE_WIDTH - lng],
+      }
+    case 0:
+    default:
+      return {
+        imageUrl: '/campus_map_0.jpg',
+        bounds: [
+          [0, 0],
+          [BASE_HEIGHT, BASE_WIDTH],
+        ],
+        transformCoords: (lat, lng) => [lat, lng],
+      }
+  }
+}
+
+function MapInstanceBridge({ onMapReady, selectedPin, bounds, transformCoords }) {
   const map = useMap()
+
+  useEffect(() => {
+    onMapReady(map)
+  }, [map, onMapReady])
+
+  useEffect(() => {
+    map.fitBounds(bounds)
+  }, [bounds, map])
+
   useEffect(() => {
     if (selectedPin) {
-      map.flyTo([selectedPin.latitude, selectedPin.longitude], Math.max(map.getZoom(), 0.5), {
+      const [lat, lng] = transformCoords(selectedPin.latitude, selectedPin.longitude)
+      map.flyTo([lat, lng], Math.max(map.getZoom(), 0.4), {
         duration: 0.6,
       })
     }
-  }, [selectedPin, map])
+  }, [selectedPin, transformCoords, map])
+
   return null
 }
 
-function MapControls({ bounds }) {
-  const map = useMap()
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 16,
-        right: 12,
-        zIndex: 30,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6,
-      }}
-    >
-      <button
-        onClick={() => map.fitBounds(bounds)}
-        title="Reset map view to whole campus"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 5,
-          padding: '6px 12px',
-          borderRadius: '9999px',
-          fontSize: 12,
-          fontWeight: 600,
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #DDDDDD',
-          color: '#222222',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-        }}
-      >
-        <Compass size={14} style={{ color: '#FF385C' }} />
-        <span>Reset View</span>
-      </button>
-      <button
-        onClick={() => map.zoomIn()}
-        title="Zoom in"
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: '9999px',
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #DDDDDD',
-          color: '#222222',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ZoomIn size={14} />
-      </button>
-      <button
-        onClick={() => map.zoomOut()}
-        title="Zoom out"
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: '9999px',
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #DDDDDD',
-          color: '#222222',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ZoomOut size={14} />
-      </button>
-    </div>
-  )
-}
-
-function PinMarker({ pin, isSelected, onClick }) {
+function PinMarker({ pin, position, isSelected, onClick }) {
   return (
     <>
       {/* Outer halo / drop ring */}
       <CircleMarker
-        center={[pin.latitude, pin.longitude]}
+        center={position}
         radius={isSelected ? 22 : 14}
         pathOptions={{
           color: isSelected ? '#FF385C' : '#1E293B',
@@ -128,11 +102,11 @@ function PinMarker({ pin, isSelected, onClick }) {
       />
       {/* Inner vibrant coral center */}
       <CircleMarker
-        center={[pin.latitude, pin.longitude]}
+        center={position}
         radius={isSelected ? 9 : 6}
         pathOptions={{
           color: '#FFFFFF',
-          fillColor: isSelected ? '#FF385C' : '#FF385C',
+          fillColor: '#FF385C',
           fillOpacity: 1,
           weight: 2,
           opacity: 1,
@@ -148,6 +122,11 @@ export default function MapView({ token: _token }) {
   const [selectedPin, setSelectedPin] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
+  // Default to 90 degrees rotated as requested
+  const [rotation, setRotation] = useState(90)
+  const [mapInstance, setMapInstance] = useState(null)
+
+  const rotationConfig = useMemo(() => getRotationConfig(rotation), [rotation])
 
   useEffect(() => {
     mapApi
@@ -166,6 +145,16 @@ export default function MapView({ token: _token }) {
 
   const handlePinClick = (pin) => setSelectedPin(pin)
   const handleCloseSheet = () => setSelectedPin(null)
+
+  const handleResetView = () => {
+    if (mapInstance) {
+      mapInstance.fitBounds(rotationConfig.bounds)
+    }
+  }
+
+  const handleRotate90 = () => {
+    setRotation((prev) => (prev + 90) % 360)
+  }
 
   return (
     <div className="h-full w-full flex flex-col overflow-hidden bg-white" style={{ backgroundColor: '#FFFFFF' }}>
@@ -188,17 +177,111 @@ export default function MapView({ token: _token }) {
             position: 'relative',
             overflow: 'hidden',
             borderColor: '#DDDDDD',
-            backgroundColor: '#9EB5C8',
+            backgroundColor: '#C0DDA5',
           }}
         >
+          {/* OVERLAY CONTROLS (Outside MapContainer at zIndex: 1000 so they NEVER get hidden when zooming) */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 12,
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              pointerEvents: 'auto',
+            }}
+          >
+            <button
+              onClick={handleResetView}
+              title="Reset map view to whole campus"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '6px 12px',
+                borderRadius: '9999px',
+                fontSize: 12,
+                fontWeight: 600,
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <Compass size={14} style={{ color: '#FF385C' }} />
+              <span>Reset View</span>
+            </button>
+            <button
+              onClick={handleRotate90}
+              title="Rotate map 90 degrees"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '9999px',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <RotateCw size={14} />
+            </button>
+            <button
+              onClick={() => mapInstance?.zoomIn()}
+              title="Zoom in"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '9999px',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ZoomIn size={14} />
+            </button>
+            <button
+              onClick={() => mapInstance?.zoomOut()}
+              title="Zoom out"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '9999px',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #DDDDDD',
+                color: '#222222',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ZoomOut size={14} />
+            </button>
+          </div>
+
           {/* Mobile floating search pill */}
           <div
             style={{
               position: 'absolute',
               top: 16,
               left: 12,
-              right: 175,
-              zIndex: 30,
+              right: 210,
+              zIndex: 1000,
             }}
             className="md:hidden"
           >
@@ -234,70 +317,87 @@ export default function MapView({ token: _token }) {
             </div>
           </div>
 
-          {/* Mobile category legend (floating) */}
+          {/* Floating category legend pills overlaying the map (zIndex: 1000 so never covered on zoom) */}
           <div
-            className="md:hidden"
             style={{
               position: 'absolute',
               top: 74,
               left: 12,
-              zIndex: 30,
+              zIndex: 1000,
               display: 'flex',
               flexDirection: 'column',
-              gap: 5,
+              gap: 6,
+              pointerEvents: 'auto',
             }}
           >
-            {CATEGORIES.map((cat) => (
-              <div
-                key={cat}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '4px 10px',
-                  borderRadius: '9999px',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #DDDDDD',
-                  color: '#222222',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-                }}
-              >
-                <div style={{ width: 6, height: 6, borderRadius: '9999px', backgroundColor: '#FF385C' }} />
-                <span>{cat}</span>
-              </div>
-            ))}
+            {CATEGORIES.map((cat) => {
+              const isActive = searchQuery === cat
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSearchQuery(searchQuery === cat ? '' : cat)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 12px',
+                    borderRadius: '9999px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    backgroundColor: isActive ? '#222222' : '#FFFFFF',
+                    border: isActive ? '1px solid #222222' : '1px solid #DDDDDD',
+                    color: isActive ? '#FFFFFF' : '#222222',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.14)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <div style={{ width: 6, height: 6, borderRadius: '9999px', backgroundColor: '#FF385C' }} />
+                  <span>{cat}</span>
+                </button>
+              )
+            })}
           </div>
 
-          {/* Illustrated FROSH Campus Map with Simple CRS */}
+          {/* Isolated Map Wrapper at zIndex: 1 so Leaflet panes (z-index 400) never cover overlay controls */}
           {!loading && (
-            <MapContainer
-              crs={L.CRS.Simple}
-              bounds={MAP_BOUNDS}
-              maxBounds={MAP_BOUNDS}
-              maxBoundsViscosity={0.9}
-              minZoom={-1}
-              maxZoom={2}
-              zoomSnap={0.2}
-              style={{ height: '100%', width: '100%', backgroundColor: '#9EB5C8' }}
-              zoomControl={false}
-            >
-              <ImageOverlay
-                url="/frosh_campus_map.png"
-                bounds={MAP_BOUNDS}
-              />
-              <MapPanController selectedPin={selectedPin} />
-              <MapControls bounds={MAP_BOUNDS} />
-              {filteredPins.map((pin) => (
-                <PinMarker
-                  key={pin.id}
-                  pin={pin}
-                  isSelected={selectedPin?.id === pin.id}
-                  onClick={handlePinClick}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+              <MapContainer
+                key={rotation}
+                crs={L.CRS.Simple}
+                bounds={rotationConfig.bounds}
+                maxBounds={rotationConfig.bounds}
+                maxBoundsViscosity={0.85}
+                minZoom={-1.5}
+                maxZoom={2}
+                zoomSnap={0.1}
+                style={{ height: '100%', width: '100%', backgroundColor: '#C0DDA5' }}
+                zoomControl={false}
+              >
+                <ImageOverlay
+                  url={rotationConfig.imageUrl}
+                  bounds={rotationConfig.bounds}
                 />
-              ))}
-            </MapContainer>
+                <MapInstanceBridge
+                  onMapReady={setMapInstance}
+                  selectedPin={selectedPin}
+                  bounds={rotationConfig.bounds}
+                  transformCoords={rotationConfig.transformCoords}
+                />
+                {filteredPins.map((pin) => {
+                  const pos = rotationConfig.transformCoords(pin.latitude, pin.longitude)
+                  return (
+                    <PinMarker
+                      key={pin.id}
+                      pin={pin}
+                      position={pos}
+                      isSelected={selectedPin?.id === pin.id}
+                      onClick={handlePinClick}
+                    />
+                  )
+                })}
+              </MapContainer>
+            </div>
           )}
 
           {loading && (
@@ -305,6 +405,7 @@ export default function MapView({ token: _token }) {
               style={{
                 position: 'absolute',
                 inset: 0,
+                zIndex: 10,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -318,10 +419,10 @@ export default function MapView({ token: _token }) {
             </div>
           )}
 
-          {/* Mobile Bottom Sheet */}
+          {/* Mobile Bottom Sheet at zIndex: 1010 */}
           <div
             className="md:hidden"
-            style={{ position: 'absolute', inset: 0, zIndex: 20, pointerEvents: 'none' }}
+            style={{ position: 'absolute', inset: 0, zIndex: 1010, pointerEvents: 'none' }}
           >
             <div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto', display: selectedPin ? 'block' : 'none' }}>
               <BottomSheet pin={selectedPin} onClose={handleCloseSheet} />
