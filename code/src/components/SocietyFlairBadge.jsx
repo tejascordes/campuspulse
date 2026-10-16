@@ -1,4 +1,4 @@
-﻿import { Users, Award, Shield, Sparkles } from 'lucide-react'
+import { Crown, Shield, Users, Clock, CheckCircle2 } from 'lucide-react'
 
 // Color map for known campus societies to make flair tags visually distinct like Reddit
 const SOCIETY_COLORS = {
@@ -24,22 +24,35 @@ function getColors(societyName = '', customColor = null) {
   return { bg: '#F4F4F5', text: '#3F3F46', border: '#E4E4E7', dot: '#71717A' }
 }
 
+function getTierShortLabel(tier) {
+  const normalized = (tier || '').toUpperCase()
+  if (normalized === 'EB') return 'EB'
+  if (normalized === 'CORE') return 'Core'
+  if (normalized === 'MEMBER') return 'Member'
+  return null
+}
+
 export default function SocietyFlairBadge({
   flair,
   societyName: propSocName,
   role: propRole,
   logoUrl: propLogoUrl,
   size = 'sm',
+  showStatus = false,
   className = '',
 }) {
   const socName = flair?.society_name || propSocName
   const role = flair?.role || propRole
+  const tier = flair?.tier || null
+  const status = flair?.status || 'APPROVED'
   const logoUrl = flair?.logo_url || propLogoUrl
 
   if (!socName && !role) return null
 
   const colors = getColors(socName, flair?.badge_color)
   const isSmall = size === 'sm'
+  const tierShort = getTierShortLabel(tier)
+  const isPending = status === 'PENDING'
 
   return (
     <span
@@ -49,9 +62,9 @@ export default function SocietyFlairBadge({
         lineHeight: 1,
         padding: isSmall ? '2px 7px 2px 5px' : '3px 9px 3px 7px',
         borderRadius: '9999px',
-        backgroundColor: colors.bg,
-        color: colors.text,
-        border: `1px solid ${colors.border}`,
+        backgroundColor: isPending && showStatus ? '#FFFBEB' : colors.bg,
+        color: isPending && showStatus ? '#B45309' : colors.text,
+        border: `1px solid ${isPending && showStatus ? '#FDE68A' : colors.border}`,
         fontWeight: 700,
         letterSpacing: '-0.01em',
         verticalAlign: 'middle',
@@ -59,9 +72,9 @@ export default function SocietyFlairBadge({
         display: 'inline-flex',
         alignItems: 'center',
       }}
-      title={`${socName} ${role ? `· ${role}` : ''} (Society Member Flair)`}
+      title={`${socName}${tierShort ? ` · ${tierShort}` : ''}${role ? ` · ${role}` : ''} (${isPending ? 'Pending Approval' : 'Verified Society Flair'})`}
     >
-      {/* Miniature logo or colored indicator */}
+      {/* Miniature logo or tier/colored indicator */}
       {logoUrl ? (
         <img
           src={logoUrl}
@@ -74,13 +87,17 @@ export default function SocietyFlairBadge({
             marginRight: 2,
           }}
         />
+      ) : tier === 'EB' ? (
+        <Crown size={isSmall ? 10 : 12} style={{ marginRight: 1, flexShrink: 0 }} />
+      ) : tier === 'CORE' ? (
+        <Shield size={isSmall ? 10 : 12} style={{ marginRight: 1, flexShrink: 0 }} />
       ) : (
         <span
           style={{
             width: isSmall ? 6 : 7,
             height: isSmall ? 6 : 7,
             borderRadius: '9999px',
-            backgroundColor: colors.dot,
+            backgroundColor: isPending && showStatus ? '#F59E0B' : colors.dot,
             flexShrink: 0,
             marginRight: 2,
           }}
@@ -90,12 +107,38 @@ export default function SocietyFlairBadge({
       {/* Society Name */}
       <span>{socName}</span>
 
+      {/* Hierarchy Tier Badge if distinct from role */}
+      {tierShort && (!role || !role.toLowerCase().includes(tierShort.toLowerCase())) && (
+        <>
+          <span style={{ opacity: 0.45, margin: '0 1px', fontWeight: 400 }}>·</span>
+          <span
+            style={{
+              fontWeight: 800,
+              fontSize: isSmall ? '9.5px' : '10.5px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {tierShort}
+          </span>
+        </>
+      )}
+
       {/* Role Tag (if present) */}
       {role && (
         <>
           <span style={{ opacity: 0.5, margin: '0 1px', fontWeight: 400 }}>·</span>
           <span style={{ fontWeight: 600, opacity: 0.9 }}>{role}</span>
         </>
+      )}
+
+      {/* Optional Status Indicator */}
+      {showStatus && (
+        isPending ? (
+          <Clock size={10} style={{ marginLeft: 2, color: '#D97706', flexShrink: 0 }} />
+        ) : (
+          <CheckCircle2 size={10} style={{ marginLeft: 2, opacity: 0.85, flexShrink: 0 }} />
+        )
       )}
     </span>
   )

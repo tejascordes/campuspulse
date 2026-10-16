@@ -633,6 +633,79 @@ const SEED_COMMENTS = [
   },
 ]
 
+const SEED_FLAIR_REQUESTS = [
+  {
+    id: 501,
+    user_name: "Rohan Verma",
+    user_email: "rohan.v@thapar.edu",
+    society_name: "CCS",
+    tier: "EB",
+    tier_label: "Executive Board (EB)",
+    role: "General Secretary",
+    required_approver_tier: "SOCIETY_ACCOUNT",
+    required_approver_label: "CCS Official Society Account",
+    status: "PENDING",
+    requested_at: new Date(now - 2 * 3600 * 1000).toISOString(),
+    approved_by: null,
+  },
+  {
+    id: 502,
+    user_name: "Ananya Sharma",
+    user_email: "ananya.s@thapar.edu",
+    society_name: "CCS",
+    tier: "CORE",
+    tier_label: "Core / Executive Committee",
+    role: "Technical Core Lead",
+    required_approver_tier: "EB",
+    required_approver_label: "CCS Executive Board (EB)",
+    status: "PENDING",
+    requested_at: new Date(now - 3 * 3600 * 1000).toISOString(),
+    approved_by: null,
+  },
+  {
+    id: 503,
+    user_name: "Kabir Singh",
+    user_email: "kabir.s@thapar.edu",
+    society_name: "CCS",
+    tier: "MEMBER",
+    tier_label: "Member",
+    role: "Junior Member",
+    required_approver_tier: "CORE",
+    required_approver_label: "CCS Core / Executive Committee",
+    status: "PENDING",
+    requested_at: new Date(now - 4 * 3600 * 1000).toISOString(),
+    approved_by: null,
+  },
+  {
+    id: 504,
+    user_name: "Priya Patel",
+    user_email: "priya.p@thapar.edu",
+    society_name: "Mudra",
+    tier: "EB",
+    tier_label: "Executive Board (EB)",
+    role: "President",
+    required_approver_tier: "SOCIETY_ACCOUNT",
+    required_approver_label: "Mudra Official Society Account",
+    status: "PENDING",
+    requested_at: new Date(now - 5 * 3600 * 1000).toISOString(),
+    approved_by: null,
+  },
+  {
+    id: 505,
+    user_name: "Tanmay Roy",
+    user_email: "tanmay.r@thapar.edu",
+    society_name: "OWASP",
+    tier: "CORE",
+    tier_label: "Core / Executive Committee",
+    role: "Cybersec Core Team",
+    required_approver_tier: "EB",
+    required_approver_label: "OWASP Executive Board (EB)",
+    status: "PENDING",
+    requested_at: new Date(now - 6 * 3600 * 1000).toISOString(),
+    approved_by: null,
+  },
+]
+
 const DEFAULT_USER = {
   id: 1,
   name: "Student User",
@@ -645,13 +718,33 @@ const DEFAULT_USER = {
   bio: "CSE '26 | Thapar Institute Student",
   flair: {
     society_name: "CCS",
+    tier: "MEMBER",
+    tier_label: "Member",
     role: "Member",
     badge_color: "#FF385C",
+    status: "APPROVED",
+    approved_by: "CCS Core / Executive Committee",
     is_active: true,
   },
   society_memberships: [
-    { society_name: "CCS", role: "Member", badge_color: "#FF385C" },
-    { society_name: "OWASP", role: "Member", badge_color: "#10B981" },
+    {
+      society_name: "CCS",
+      tier: "MEMBER",
+      tier_label: "Member",
+      role: "Member",
+      badge_color: "#FF385C",
+      status: "APPROVED",
+      approved_by: "CCS Core / Executive Committee",
+    },
+    {
+      society_name: "OWASP",
+      tier: "MEMBER",
+      tier_label: "Member",
+      role: "Member",
+      badge_color: "#10B981",
+      status: "APPROVED",
+      approved_by: "OWASP Core / Executive Committee",
+    },
   ],
 }
 
@@ -672,6 +765,7 @@ class MockStore {
         this.friends = parsed.friends || SEED_FRIENDS
         this.applications = parsed.applications || SEED_APPLICATIONS
         this.comments = parsed.comments || SEED_COMMENTS
+        this.flairRequests = parsed.flairRequests || SEED_FLAIR_REQUESTS
         this.user = parsed.user || DEFAULT_USER
         return
       }
@@ -685,6 +779,7 @@ class MockStore {
     this.friends = [...SEED_FRIENDS]
     this.applications = [...SEED_APPLICATIONS]
     this.comments = [...SEED_COMMENTS]
+    this.flairRequests = [...SEED_FLAIR_REQUESTS]
     this.user = { ...DEFAULT_USER }
     this.persist()
   }
@@ -701,7 +796,7 @@ class MockStore {
           friends: this.friends,
           applications: this.applications,
           comments: this.comments,
-          comments: this.comments,
+          flairRequests: this.flairRequests,
           user: this.user,
         })
       )
@@ -1051,13 +1146,14 @@ class MockStore {
 
   addPostComment(postId, data) {
     const pid = Number(postId)
-    const activeFlair = this.user?.flair?.is_active !== false ? this.user?.flair : null
+    const isFlairApproved = this.user?.flair?.status !== "PENDING" && this.user?.flair?.status !== "REJECTED"
+    const activeFlair = this.user?.flair?.is_active !== false && isFlairApproved ? this.user?.flair : null
     const newComment = {
       id: Date.now(),
       post_id: pid,
       author_name: data.author_name || this.user?.name || "Student User",
       author_email: data.author_email || this.user?.email || "student@thapar.edu",
-      author_flair: data.author_flair || activeFlair || (this.user?.account_type === 'society' ? { society_name: this.user?.society_name || 'CCS', role: 'Official', badge_color: '#FF385C' } : null),
+      author_flair: data.author_flair || activeFlair || (this.user?.account_type === 'society' ? { society_name: this.user?.society_name || 'CCS', tier: 'SOCIETY_ACCOUNT', role: 'Official', badge_color: '#FF385C', status: 'APPROVED' } : null),
       content: data.content,
       created_at: new Date().toISOString(),
       upvotes: 1,
@@ -1086,34 +1182,230 @@ class MockStore {
     return { success: true, upvotes: 1 }
   }
 
+  getTierMetadata(societyName, tier) {
+    const normalized = (tier || "MEMBER").toUpperCase()
+    if (normalized === "EB") {
+      return {
+        tier: "EB",
+        rank: 3,
+        tier_label: "Executive Board (EB)",
+        required_approver_tier: "SOCIETY_ACCOUNT",
+        required_approver_label: `${societyName} Official Society Account`,
+      }
+    }
+    if (normalized === "CORE") {
+      return {
+        tier: "CORE",
+        rank: 2,
+        tier_label: "Core / Executive Committee",
+        required_approver_tier: "EB",
+        required_approver_label: `${societyName} Executive Board (EB)`,
+      }
+    }
+    return {
+      tier: "MEMBER",
+      rank: 1,
+      tier_label: "Member",
+      required_approver_tier: "CORE",
+      required_approver_label: `${societyName} Core / Executive Committee`,
+    }
+  }
+
+  getUserRankInSociety(societyName) {
+    if (!this.user || !societyName) return 0
+    const target = societyName.trim().toLowerCase()
+    if (this.user.account_type === "admin" || this.user.email?.toLowerCase() === "tkorde_be@thapar.edu") {
+      return 4
+    }
+    if (
+      (this.user.account_type === "society" || this.user.society_status === "APPROVED") &&
+      (this.user.society_name || "").trim().toLowerCase() === target
+    ) {
+      return 4
+    }
+    const memberships = this.user.society_memberships || []
+    let maxRank = 0
+    for (const m of memberships) {
+      if ((m.society_name || "").trim().toLowerCase() === target && m.status !== "PENDING" && m.status !== "REJECTED") {
+        const meta = this.getTierMetadata(societyName, m.tier || "MEMBER")
+        if (meta.rank > maxRank) maxRank = meta.rank
+      }
+    }
+    if (
+      this.user.flair &&
+      (this.user.flair.society_name || "").trim().toLowerCase() === target &&
+      this.user.flair.status === "APPROVED"
+    ) {
+      const meta = this.getTierMetadata(societyName, this.user.flair.tier || "MEMBER")
+      if (meta.rank > maxRank) maxRank = meta.rank
+    }
+    return maxRank
+  }
+
   updateUserFlair(flairData) {
     if (!this.user) return null
-    this.user.flair = {
-      society_name: flairData.society_name,
-      role: flairData.role || "Member",
-      badge_color: flairData.badge_color || "#FF385C",
-      is_active: flairData.is_active ?? true,
-      logo_url: flairData.logo_url || null,
-    }
+    const socName = flairData.society_name || "CCS"
+    const meta = this.getTierMetadata(socName, flairData.tier)
+    const userRank = this.getUserRankInSociety(socName)
 
-    // Also update memberships array if not already present
-    if (!this.user.society_memberships) this.user.society_memberships = []
-    const existing = this.user.society_memberships.find(
-      (m) => m.society_name.toLowerCase() === flairData.society_name.toLowerCase()
-    )
-    if (existing) {
-      existing.role = flairData.role || existing.role
-      existing.badge_color = flairData.badge_color || existing.badge_color
-    } else if (flairData.society_name) {
-      this.user.society_memberships.push({
-        society_name: flairData.society_name,
-        role: flairData.role || "Member",
+    // If user already holds approved authority at or above the requested tier (or is the society account), approve immediately
+    const isAlreadyAuthorized = userRank >= meta.rank
+
+    if (isAlreadyAuthorized) {
+      this.user.flair = {
+        society_name: socName,
+        tier: meta.tier,
+        tier_label: meta.tier_label,
+        role: flairData.role || meta.tier_label,
         badge_color: flairData.badge_color || "#FF385C",
-      })
+        is_active: flairData.is_active ?? true,
+        logo_url: flairData.logo_url || null,
+        status: "APPROVED",
+        approved_by: userRank === 4 ? `${socName} Official Society Account` : meta.required_approver_label,
+      }
+
+      if (!this.user.society_memberships) this.user.society_memberships = []
+      const existing = this.user.society_memberships.find(
+        (m) => m.society_name.toLowerCase() === socName.toLowerCase() && (m.tier || "MEMBER") === meta.tier
+      )
+      if (existing) {
+        existing.role = this.user.flair.role
+        existing.status = "APPROVED"
+      } else {
+        this.user.society_memberships.push({
+          society_name: socName,
+          tier: meta.tier,
+          tier_label: meta.tier_label,
+          role: this.user.flair.role,
+          badge_color: flairData.badge_color || "#FF385C",
+          status: "APPROVED",
+          approved_by: this.user.flair.approved_by,
+        })
+      }
+    } else {
+      // Create a pending request routed to one hierarchy level above
+      this.user.flair = {
+        society_name: socName,
+        tier: meta.tier,
+        tier_label: meta.tier_label,
+        role: flairData.role || meta.tier_label,
+        badge_color: flairData.badge_color || "#FF385C",
+        is_active: flairData.is_active ?? true,
+        logo_url: flairData.logo_url || null,
+        status: "PENDING",
+        required_approver_tier: meta.required_approver_tier,
+        required_approver_label: meta.required_approver_label,
+      }
+
+      if (!this.flairRequests) this.flairRequests = [...SEED_FLAIR_REQUESTS]
+      const existingReq = this.flairRequests.find(
+        (r) =>
+          r.user_email?.toLowerCase() === (this.user.email || "").toLowerCase() &&
+          r.society_name.toLowerCase() === socName.toLowerCase() &&
+          r.status === "PENDING"
+      )
+      if (existingReq) {
+        existingReq.tier = meta.tier
+        existingReq.tier_label = meta.tier_label
+        existingReq.role = this.user.flair.role
+        existingReq.required_approver_tier = meta.required_approver_tier
+        existingReq.required_approver_label = meta.required_approver_label
+        existingReq.requested_at = new Date().toISOString()
+      } else {
+        this.flairRequests.unshift({
+          id: Date.now(),
+          user_name: this.user.name || "Student User",
+          user_email: this.user.email || "student@thapar.edu",
+          society_name: socName,
+          tier: meta.tier,
+          tier_label: meta.tier_label,
+          role: this.user.flair.role,
+          required_approver_tier: meta.required_approver_tier,
+          required_approver_label: meta.required_approver_label,
+          status: "PENDING",
+          requested_at: new Date().toISOString(),
+          approved_by: null,
+        })
+      }
     }
 
     this.persist()
     return this.user
+  }
+
+  getFlairRequests() {
+    if (!this.flairRequests) this.flairRequests = [...SEED_FLAIR_REQUESTS]
+    return this.flairRequests
+  }
+
+  approveFlairRequest(requestId, approverLabel = null) {
+    if (!this.flairRequests) this.flairRequests = [...SEED_FLAIR_REQUESTS]
+    const req = this.flairRequests.find((r) => r.id === Number(requestId))
+    if (!req) return { success: false }
+
+    req.status = "APPROVED"
+    req.approved_by = approverLabel || req.required_approver_label
+
+    // If this request belongs to the currently active user, promote their flair & membership to APPROVED
+    if (
+      this.user &&
+      (this.user.email?.toLowerCase() === req.user_email?.toLowerCase() ||
+        (this.user.flair?.society_name?.toLowerCase() === req.society_name.toLowerCase() &&
+          this.user.flair?.tier === req.tier))
+    ) {
+      this.user.flair = {
+        ...this.user.flair,
+        society_name: req.society_name,
+        tier: req.tier,
+        tier_label: req.tier_label,
+        role: req.role,
+        status: "APPROVED",
+        approved_by: req.approved_by,
+        is_active: true,
+      }
+      if (!this.user.society_memberships) this.user.society_memberships = []
+      const existing = this.user.society_memberships.find(
+        (m) => m.society_name.toLowerCase() === req.society_name.toLowerCase() && m.tier === req.tier
+      )
+      if (existing) {
+        existing.status = "APPROVED"
+        existing.role = req.role
+        existing.approved_by = req.approved_by
+      } else {
+        this.user.society_memberships.push({
+          society_name: req.society_name,
+          tier: req.tier,
+          tier_label: req.tier_label,
+          role: req.role,
+          badge_color: "#FF385C",
+          status: "APPROVED",
+          approved_by: req.approved_by,
+        })
+      }
+    }
+
+    this.persist()
+    return { success: true, request: req, user: this.user }
+  }
+
+  rejectFlairRequest(requestId) {
+    if (!this.flairRequests) this.flairRequests = [...SEED_FLAIR_REQUESTS]
+    const req = this.flairRequests.find((r) => r.id === Number(requestId))
+    if (!req) return { success: false }
+
+    req.status = "REJECTED"
+
+    if (
+      this.user &&
+      this.user.email?.toLowerCase() === req.user_email?.toLowerCase() &&
+      this.user.flair?.society_name?.toLowerCase() === req.society_name.toLowerCase() &&
+      this.user.flair?.tier === req.tier
+    ) {
+      this.user.flair.status = "REJECTED"
+    }
+
+    this.persist()
+    return { success: true, request: req, user: this.user }
   }
 
   updateProfile(data) {

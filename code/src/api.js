@@ -294,6 +294,30 @@ export const authApi = {
       return mockStore.updateUserFlair(flairData)
     }
   },
+  getFlairRequests: async () => {
+    try {
+      const res = await apiClient.get('/api/auth/flair-requests')
+      return res.data
+    } catch {
+      return mockStore.getFlairRequests()
+    }
+  },
+  approveFlairRequest: async (requestId, approverLabel) => {
+    try {
+      const res = await apiClient.post(`/api/auth/flair-requests/${requestId}/approve`, { approver_label: approverLabel })
+      return res.data
+    } catch {
+      return mockStore.approveFlairRequest(requestId, approverLabel)
+    }
+  },
+  rejectFlairRequest: async (requestId) => {
+    try {
+      const res = await apiClient.post(`/api/auth/flair-requests/${requestId}/reject`)
+      return res.data
+    } catch {
+      return mockStore.rejectFlairRequest(requestId)
+    }
+  },
 }
 
 export const postsApi = {

@@ -1,5 +1,4 @@
-import { useState, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
 import {
   LogOut,
   Eye,
@@ -11,11 +10,12 @@ import {
   ShieldCheck,
   Crown,
   Building2,
-  Sparkles,
   Clock,
   ArrowRight,
   Tag,
-  Award,
+  CheckCircle2,
+  XCircle,
+  ChevronRight,
   Image as ImageIcon,
 } from 'lucide-react'
 import { authApi, societiesApi } from '../api.js'
@@ -50,7 +50,33 @@ const STAT_CARDS = [
 
 const SOCIETY_CATEGORIES = ['Tech', 'Cultural', 'Sports', 'Academic', 'Literary', 'Social & Welfare']
 const POPULAR_SOCIETIES = ['CCS', 'OWASP', 'Mudra', 'Trident', 'E-Cell', 'Aagaaz', 'Rotaract', 'Quiz Club', 'FAP', 'ACM']
-const POPULAR_ROLES = ['Core Team', 'President', 'Tech Lead', 'Executive', 'Organizer', 'Member', 'Designer', 'Volunteer']
+
+const HIERARCHY_TIERS = [
+  {
+    id: 'EB',
+    label: 'Executive Board (EB)',
+    shortLabel: 'EB (Top Tier)',
+    approverDesc: 'Approved by Official Society Account',
+    icon: Crown,
+    presets: ['President', 'General Secretary', 'Vice President', 'Technical Head', 'Joint Secretary', 'EB Member'],
+  },
+  {
+    id: 'CORE',
+    label: 'Core / Executive Committee',
+    shortLabel: 'Core / EC (Mid Tier)',
+    approverDesc: 'Approved by Executive Board (EB)',
+    icon: Shield,
+    presets: ['Core Team', 'Executive Committee', 'Project Lead', 'Event Coordinator', 'Design Lead'],
+  },
+  {
+    id: 'MEMBER',
+    label: 'Members',
+    shortLabel: 'Member (Base Tier)',
+    approverDesc: 'Approved by Core / Executive Committee',
+    icon: Users,
+    presets: ['Member', 'Volunteer', 'Junior Associate', 'Developer', 'Designer'],
+  },
+]
 
 export default function ProfileView({ user, token, onLogout, onUpdateUser, onNavigate }) {
   const isAdmin = user?.email?.toLowerCase() === 'tkorde_be@thapar.edu' || user?.account_type === 'admin'
@@ -66,12 +92,26 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
   const [logoUrl, setLogoUrl] = useState(user?.logo_url || '')
   const fileInputRef = useRef(null)
 
-  // Society Flair state (Reddit-style user flair)
+  // Society Flair state (with 3-tier hierarchy: EB -> Core/EC -> Member)
   const [flairSociety, setFlairSociety] = useState(user?.flair?.society_name || 'CCS')
+  const [flairTier, setFlairTier] = useState(user?.flair?.tier || 'MEMBER')
   const [flairRole, setFlairRole] = useState(user?.flair?.role || 'Member')
   const [flairActive, setFlairActive] = useState(user?.flair?.is_active ?? true)
   const [savingFlair, setSavingFlair] = useState(false)
-  const [savedFlair, setSavedFlair] = useState(false)
+  const [savedFlairMessage, setSavedFlairMessage] = useState('')
+
+  // Flair Approval Queue State
+  const [flairRequests, setFlairRequests] = useState([])
+  // Approver authority filter: auto-detect from user role, or allow testing each level of the hierarchy
+  const defaultApproverLevel = isApprovedSociety || isAdmin
+    ? 'SOCIETY_ACCOUNT'
+    : (user?.flair?.status === 'APPROVED' && (user?.flair?.tier === 'EB' || user?.flair?.tier === 'CORE')
+        ? user.flair.tier
+        : 'EB')
+  const [activeApproverLevel, setActiveApproverLevel] = useState(defaultApproverLevel)
+  const [activeApproverSociety, setActiveApproverSociety] = useState(
+    isApprovedSociety ? (user?.society_name || 'CCS') : (user?.flair?.society_name || 'CCS')
+  )
 
   // Society Application Form State (for Students)
   const [applyData, setApplyData] = useState({
@@ -85,24 +125,111 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
   const [appSubmitted, setAppSubmitted] = useState(isPendingSociety)
   const applyFileInputRef = useRef(null)
 
+  useEffect(() => {
+    authApi.getFlairRequests().then((list) => {
+      if (Array.isArray(list)) setFlairRequests(list)
+    })
+  }, [])
+
+  const currentTierObj = HIERARCHY_TIERS.find((t) => t.id === flairTier) || HIERARCHY_TIERS[2]
+
+  // Check if user already holds an APPROVED membership at or above the selected tier in the selected society
+  const isAlreadyApprovedForSelection = (() => {
+    if (isAdmin) return true
+    if (isApprovedSociety && (user?.society_name || '').toLowerCase() === flairSociety.toLowerCase()) return true
+    const rankMap = { EB: 3, CORE: 2, MEMBER: 1 }
+    const targetRank = rankMap[flairTier] || 1
+    const memberships = user?.society_memberships || []
+    return memberships.some(
+      (m) =>
+        (m.society_name || '').toLowerCase() === flairSociety.toLowerCase() &&
+        m.status !== 'PENDING' &&
+        m.status !== 'REJECTED' &&
+        (rankMap[m.tier || 'MEMBER'] || 1) >= targetRank
+    )
+  })()
+
+  const handleTierSelect = (tierId) => {
+    setFlairTier(tierId)
+    const tierObj = HIERARCHY_TIERS.find((t) => t.id === tierId)
+    if (tierObj && tierObj.presets.length > 0) {
+      setFlairRole(tierObj.presets[0])
+    }
+  }
+
   const handleSaveFlair = async (e) => {
     e.preventDefault()
     setSavingFlair(true)
     try {
       const updated = await authApi.updateFlair({
         society_name: flairSociety,
+        tier: flairTier,
         role: flairRole,
         is_active: flairActive,
       })
       onUpdateUser(updated)
-      setSavedFlair(true)
-      setTimeout(() => setSavedFlair(false), 2500)
+      const latestRequests = await authApi.getFlairRequests()
+      if (Array.isArray(latestRequests)) setFlairRequests([...latestRequests])
+
+      if (updated?.flair?.status === 'PENDING') {
+        setSavedFlairMessage(`Sent to ${updated.flair.required_approver_label} for approval`)
+      } else {
+        setSavedFlairMessage('Verified Flair Equipped!')
+      }
+      setTimeout(() => setSavedFlairMessage(''), 3500)
     } catch (err) {
       console.error('Failed to save flair:', err)
     } finally {
       setSavingFlair(false)
     }
   }
+
+  const handleApproveFlairRequest = async (req) => {
+    const approverTitle =
+      activeApproverLevel === 'SOCIETY_ACCOUNT'
+        ? `${req.society_name} Official Society Account`
+        : activeApproverLevel === 'EB'
+        ? `${req.society_name} Executive Board (EB)`
+        : `${req.society_name} Core / Executive Committee`
+
+    const res = await authApi.approveFlairRequest(req.id, approverTitle)
+    if (res?.user) {
+      onUpdateUser({ ...res.user })
+    }
+    const latestRequests = await authApi.getFlairRequests()
+    if (Array.isArray(latestRequests)) setFlairRequests([...latestRequests])
+  }
+
+  const handleRejectFlairRequest = async (req) => {
+    const res = await authApi.rejectFlairRequest(req.id)
+    if (res?.user) {
+      onUpdateUser({ ...res.user })
+    }
+    const latestRequests = await authApi.getFlairRequests()
+    if (Array.isArray(latestRequests)) setFlairRequests([...latestRequests])
+  }
+
+  // Filter requests that the selected hierarchy level is authorized to approve
+  // Hierarchy rule:
+  // - SOCIETY_ACCOUNT approves EB (and can also approve CORE/MEMBER if needed, primary target is EB)
+  // - EB approves CORE (Core / Executive Committee)
+  // - CORE approves MEMBER (Members)
+  const approvableRequests = flairRequests.filter((r) => {
+    if (r.status !== 'PENDING') return false
+    if (activeApproverSociety !== 'ALL' && r.society_name.toLowerCase() !== activeApproverSociety.toLowerCase()) {
+      return false
+    }
+    if (activeApproverLevel === 'SOCIETY_ACCOUNT') {
+      return r.tier === 'EB'
+    }
+    if (activeApproverLevel === 'EB') {
+      return r.tier === 'CORE'
+    }
+    if (activeApproverLevel === 'CORE') {
+      return r.tier === 'MEMBER'
+    }
+    return false
+  })
 
   const handlePrivacyChange = async (val) => {
     setPrivacy(val)
@@ -325,7 +452,6 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
               backgroundColor: '#FFFFFF',
             }}
           >
-            {/* Avatar with single coral ring or uploaded logo */}
             <div style={{ position: 'relative' }}>
               <div
                 style={{
@@ -441,7 +567,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                       gap: 3,
                     }}
                   >
-                    <ShieldCheck size={11} /> Verified Society
+                    <ShieldCheck size={11} /> Verified Society Account
                   </span>
                 ) : (
                   <span
@@ -463,7 +589,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
 
                 {/* User Active Society Flair (Reddit-style) */}
                 {user?.flair?.is_active !== false && user?.flair?.society_name && !isApprovedSociety && (
-                  <SocietyFlairBadge flair={user.flair} size="sm" />
+                  <SocietyFlairBadge flair={user.flair} size="sm" showStatus={true} />
                 )}
               </div>
               <p
@@ -488,7 +614,39 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
             </div>
           </div>
 
-          {/* Stats Grid: #F7F7F7 surface panels with key numbers */}
+          {/* Society Hierarchy Chain Info Card */}
+          <div
+            className="surface-card"
+            style={{
+              padding: '16px 18px',
+              border: '1px solid #DDDDDD',
+              backgroundColor: '#FAFAFA',
+              borderRadius: 14,
+            }}
+          >
+            <p style={{ fontSize: 10, fontWeight: 800, color: '#FF385C', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>
+              Society Flair Approval Chain
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5 }}>
+                <span style={{ fontWeight: 800, color: '#222222', minWidth: 115 }}>1. Society Account</span>
+                <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
+                <span style={{ color: '#4B5563' }}>Approves <strong>Executive Board (EB)</strong></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5 }}>
+                <span style={{ fontWeight: 800, color: '#222222', minWidth: 115 }}>2. Exec. Board (EB)</span>
+                <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
+                <span style={{ color: '#4B5563' }}>Approves <strong>Core / Exec. Committee</strong></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5 }}>
+                <span style={{ fontWeight: 800, color: '#222222', minWidth: 115 }}>3. Core / Committee</span>
+                <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
+                <span style={{ color: '#4B5563' }}>Approves <strong>Members</strong></span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
             {STAT_CARDS.map((stat) => (
               <div
@@ -528,12 +686,12 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
         {/* Right Column: Role Actions & Settings */}
         <div className="md:col-span-7" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-          {/* 1. Reddit-Style User Flair & Society Membership Card */}
+          {/* 1. Reddit-Style User Flair & Hierarchy Selection Card */}
           <div
             className="surface-card"
             style={{ padding: 22, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div
                   style={{
@@ -551,19 +709,58 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                 </div>
                 <div>
                   <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: 0 }}>
-                    Society Flair (Reddit-Style Tag)
+                    Society Flair &amp; Hierarchy Rank
                   </h3>
                   <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
-                    Display your society membership tag next to your name in discussions
+                    Each flair tier is approved by the hierarchy level directly above it
                   </p>
                 </div>
               </div>
-              {savedFlair && (
-                <span style={{ fontSize: 12, color: '#10B981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Check size={14} /> Flair Saved
+              {savedFlairMessage && (
+                <span style={{ fontSize: 11.5, color: '#10B981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Check size={14} /> {savedFlairMessage}
                 </span>
               )}
             </div>
+
+            {/* Active Flair Approval Status Banner */}
+            {user?.flair?.society_name && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 12,
+                  backgroundColor: user.flair.status === 'PENDING' ? '#FFFBEB' : '#ECFDF5',
+                  border: `1px solid ${user.flair.status === 'PENDING' ? '#FDE68A' : '#A7F3D0'}`,
+                  marginBottom: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {user.flair.status === 'PENDING' ? (
+                    <Clock size={16} style={{ color: '#D97706', flexShrink: 0 }} />
+                  ) : (
+                    <CheckCircle2 size={16} style={{ color: '#059669', flexShrink: 0 }} />
+                  )}
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: user.flair.status === 'PENDING' ? '#92400E' : '#065F46', margin: 0 }}>
+                      {user.flair.status === 'PENDING'
+                        ? `Flair Pending Approval (${user.flair.society_name} · ${user.flair.tier_label || user.flair.tier})`
+                        : `Verified Flair Active (${user.flair.society_name} · ${user.flair.tier_label || user.flair.tier || 'Member'})`}
+                    </p>
+                    <p style={{ fontSize: 11, color: user.flair.status === 'PENDING' ? '#B45309' : '#047857', margin: '2px 0 0' }}>
+                      {user.flair.status === 'PENDING'
+                        ? `Awaiting approval from ${user.flair.required_approver_label}`
+                        : `Approved by ${user.flair.approved_by || `${user.flair.society_name} Hierarchy`}`}
+                    </p>
+                  </div>
+                </div>
+                <SocietyFlairBadge flair={user.flair} size="sm" showStatus={true} />
+              </div>
+            )}
 
             {/* Live Flair Preview Banner */}
             <div
@@ -578,7 +775,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
               <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 6px' }}>
                 Live Discussion Preview
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <div
                   style={{
                     width: 24,
@@ -601,8 +798,14 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                 </span>
                 {flairActive ? (
                   <SocietyFlairBadge
-                    flair={{ society_name: flairSociety, role: flairRole }}
+                    flair={{
+                      society_name: flairSociety,
+                      tier: flairTier,
+                      role: flairRole,
+                      status: isAlreadyApprovedForSelection ? 'APPROVED' : 'PENDING',
+                    }}
                     size="sm"
+                    showStatus={true}
                   />
                 ) : (
                   <span style={{ fontSize: 11, color: '#9CA3AF', fontStyle: 'italic' }}>
@@ -614,10 +817,10 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
             </div>
 
             <form onSubmit={handleSaveFlair} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Society Selector Chips */}
+              {/* Step 1: Society Selector Chips */}
               <div>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
-                  Select Your Society
+                  1. Select Your Society
                 </label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {POPULAR_SOCIETIES.map((soc) => {
@@ -646,24 +849,96 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                 </div>
               </div>
 
-              {/* Role / Position */}
+              {/* Step 2: Select Hierarchy Level */}
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
+                  2. Select Society Hierarchy Level
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {HIERARCHY_TIERS.map((tierItem) => {
+                    const isSelected = flairTier === tierItem.id
+                    const TierIcon = tierItem.icon
+                    return (
+                      <button
+                        key={tierItem.id}
+                        type="button"
+                        onClick={() => handleTierSelect(tierItem.id)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '10px 14px',
+                          borderRadius: 12,
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          backgroundColor: isSelected ? '#FFF5F5' : '#FFFFFF',
+                          border: isSelected ? '1.5px solid #FF385C' : '1px solid #DDDDDD',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: '9999px',
+                              backgroundColor: isSelected ? '#FF385C' : '#F3F4F6',
+                              color: isSelected ? '#FFFFFF' : '#4B5563',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <TierIcon size={15} />
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 13, fontWeight: 800, color: '#222222', margin: 0 }}>
+                              {tierItem.label}
+                            </p>
+                            <p style={{ fontSize: 11, color: '#717171', margin: '1px 0 0' }}>
+                              {tierItem.approverDesc}
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            padding: '3px 8px',
+                            borderRadius: '9999px',
+                            backgroundColor: isSelected ? '#FF385C' : '#F3F4F6',
+                            color: isSelected ? '#FFFFFF' : '#4B5563',
+                          }}
+                        >
+                          {tierItem.shortLabel}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Step 3: Role / Designation within selected Tier */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <label style={{ fontSize: 12, fontWeight: 700, color: '#222222' }}>
-                    Your Role / Title in Society
+                    3. Specific Role / Designation ({currentTierObj.shortLabel})
                   </label>
-                  <span style={{ fontSize: 11, color: '#717171' }}>e.g. Core Team, Lead, Member</span>
+                  <span style={{ fontSize: 11, color: '#FF385C', fontWeight: 600 }}>
+                    {currentTierObj.approverDesc}
+                  </span>
                 </div>
                 <input
                   className="input-standard"
                   value={flairRole}
                   onChange={(e) => setFlairRole(e.target.value)}
-                  placeholder="e.g. Core Team, President, Technical Lead"
+                  placeholder={`e.g. ${currentTierObj.presets.slice(0, 3).join(', ')}`}
                   style={{ marginBottom: 6 }}
                 />
-                {/* Quick Role Presets */}
+                {/* Quick Role Presets for current hierarchy tier */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {POPULAR_ROLES.map((r) => (
+                  {currentTierObj.presets.map((r) => (
                     <button
                       key={r}
                       type="button"
@@ -672,10 +947,10 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                         padding: '3px 8px',
                         fontSize: 10.5,
                         fontWeight: 600,
-                        backgroundColor: flairRole === r ? '#F3F4F6' : '#FFFFFF',
+                        backgroundColor: flairRole === r ? '#222222' : '#FFFFFF',
                         border: '1px solid #E5E7EB',
                         borderRadius: 6,
-                        color: '#4B5563',
+                        color: flairRole === r ? '#FFFFFF' : '#4B5563',
                         cursor: 'pointer',
                       }}
                     >
@@ -702,7 +977,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                     Show Flair in Discussions
                   </p>
                   <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
-                    Visible next to all your replies on campus posts
+                    Visible next to your replies once approved by {flairTier === 'EB' ? `${flairSociety} Society Account` : flairTier === 'CORE' ? `${flairSociety} EB` : `${flairSociety} Core / EC`}
                   </p>
                 </div>
                 <input
@@ -713,20 +988,259 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11, color: '#717171' }}>
+                  {isAlreadyApprovedForSelection
+                    ? `✓ You already hold verified ${currentTierObj.shortLabel} authority in ${flairSociety}`
+                    : `Requires approval from: ${flairTier === 'EB' ? `${flairSociety} Official Society Account` : flairTier === 'CORE' ? `${flairSociety} Executive Board (EB)` : `${flairSociety} Core / Executive Committee`}`}
+                </span>
                 <button
                   type="submit"
                   className="btn-primary"
                   style={{ padding: '10px 20px', fontSize: 13 }}
                   disabled={savingFlair}
                 >
-                  {savingFlair ? <Loader2 size={14} className="animate-spin" /> : 'Save Society Flair'}
+                  {savingFlair ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : isAlreadyApprovedForSelection ? (
+                    'Equip Verified Flair'
+                  ) : (
+                    'Request Flair Approval'
+                  )}
                 </button>
               </div>
             </form>
           </div>
 
-          {/* 1. If User is Student & Pending Approval */}
+          {/* 2. Hierarchical Flair Approvals Panel (Level-Above Approval Queue) */}
+          <div
+            className="surface-card"
+            style={{ padding: 22, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '9999px',
+                    backgroundColor: '#ECFDF5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#059669',
+                  }}
+                >
+                  <ShieldCheck size={16} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: 0 }}>
+                    Hierarchy Flair Approvals (Approve Tier Below You)
+                  </h3>
+                  <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
+                    {activeApproverLevel === 'SOCIETY_ACCOUNT'
+                      ? 'Official Society Account → Approves Executive Board (EB) flairs'
+                      : activeApproverLevel === 'EB'
+                      ? 'Executive Board (EB) → Approves Core / Executive Committee flairs'
+                      : 'Core / Executive Committee → Approves Member flairs'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Authority Level & Society Switcher */}
+            <div
+              style={{
+                padding: '10px 12px',
+                borderRadius: 12,
+                backgroundColor: '#F9FAFB',
+                border: '1px solid #E5E7EB',
+                marginBottom: 14,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Acting Approver Authority:
+                </span>
+                <select
+                  value={activeApproverSociety}
+                  onChange={(e) => setActiveApproverSociety(e.target.value)}
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: 8,
+                    border: '1px solid #DDDDDD',
+                    backgroundColor: '#FFFFFF',
+                    color: '#222222',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="ALL">All Societies</option>
+                  {POPULAR_SOCIETIES.map((s) => (
+                    <option key={s} value={s}>
+                      {s} Society
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                {[
+                  { id: 'SOCIETY_ACCOUNT', label: 'Society Account', sub: 'Approves EB' },
+                  { id: 'EB', label: 'Exec. Board (EB)', sub: 'Approves Core/EC' },
+                  { id: 'CORE', label: 'Core Committee', sub: 'Approves Members' },
+                ].map((lvl) => {
+                  const isActive = activeApproverLevel === lvl.id
+                  return (
+                    <button
+                      key={lvl.id}
+                      type="button"
+                      onClick={() => setActiveApproverLevel(lvl.id)}
+                      style={{
+                        padding: '8px 6px',
+                        borderRadius: 10,
+                        border: isActive ? '1.5px solid #222222' : '1px solid #DDDDDD',
+                        backgroundColor: isActive ? '#222222' : '#FFFFFF',
+                        color: isActive ? '#FFFFFF' : '#222222',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ fontSize: 11.5, fontWeight: 800 }}>{lvl.label}</div>
+                      <div style={{ fontSize: 10, opacity: isActive ? 0.85 : 0.65, marginTop: 1 }}>{lvl.sub}</div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Pending Flair Requests List for this Authority Level */}
+            {approvableRequests.length === 0 ? (
+              <div
+                style={{
+                  padding: '20px 16px',
+                  textAlign: 'center',
+                  borderRadius: 12,
+                  backgroundColor: '#F9FAFB',
+                  border: '1px dashed #DDDDDD',
+                }}
+              >
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#4B5563', margin: 0 }}>
+                  No pending{' '}
+                  {activeApproverLevel === 'SOCIETY_ACCOUNT'
+                    ? 'Executive Board (EB)'
+                    : activeApproverLevel === 'EB'
+                    ? 'Core / Executive Committee'
+                    : 'Member'}{' '}
+                  flair requests
+                </p>
+                <p style={{ fontSize: 11.5, color: '#9CA3AF', margin: '4px 0 0' }}>
+                  When users request a flair one tier below your rank, it will appear here for approval.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {approvableRequests.map((req) => (
+                  <div
+                    key={req.id}
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: 12,
+                      border: '1px solid #E5E7EB',
+                      backgroundColor: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 180 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#222222' }}>{req.user_name}</span>
+                        <span style={{ fontSize: 11, color: '#717171' }}>({req.user_email})</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, color: '#4B5563', fontWeight: 600 }}>Requested Flair:</span>
+                        <SocietyFlairBadge
+                          flair={{
+                            society_name: req.society_name,
+                            tier: req.tier,
+                            role: req.role,
+                            status: 'APPROVED',
+                          }}
+                          size="sm"
+                        />
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: '2px 7px',
+                            borderRadius: 6,
+                            backgroundColor: '#FFFBEB',
+                            color: '#B45309',
+                            border: '1px solid #FDE68A',
+                          }}
+                        >
+                          Tier: {req.tier_label}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={() => handleApproveFlairRequest(req)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '6px 12px',
+                          borderRadius: '9999px',
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          backgroundColor: '#10B981',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <CheckCircle2 size={13} />
+                        <span>Approve</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRejectFlairRequest(req)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '6px 10px',
+                          borderRadius: '9999px',
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          backgroundColor: '#FEF2F2',
+                          color: '#EF4444',
+                          border: '1px solid #FECACA',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <XCircle size={13} />
+                        <span>Reject</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 3. If User is Student & Pending Society Account Approval */}
           {isStudent && (appSubmitted || isPendingSociety) && (
             <div
               className="surface-card"
@@ -780,7 +1294,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
             </div>
           )}
 
-          {/* 2. If User is Student & Has NOT applied yet -> Society Application Form */}
+          {/* 4. If User is Student & Has NOT applied yet -> Society Application Form */}
           {isStudent && !appSubmitted && !isPendingSociety && (
             <div
               className="surface-card"
@@ -804,17 +1318,16 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                       <Building2 size={16} />
                     </div>
                     <h3 style={{ fontSize: 16, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.01em' }}>
-                      Apply for Society Account
+                      Apply for Official Society Account
                     </h3>
                   </div>
                   <p style={{ fontSize: 12, color: '#717171', margin: '6px 0 0', lineHeight: 1.4 }}>
-                    Societies can publish official campus posts, hackathon announcements, and pin events on the pulse map.
+                    Official Society Accounts can publish campus posts, host events, and approve Executive Board (EB) flairs.
                   </p>
                 </div>
               </div>
 
               <form onSubmit={handleSubmitApplication} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Society Name */}
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
                     Society / Club Name
@@ -828,7 +1341,6 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                   />
                 </div>
 
-                {/* Category Dropdown */}
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
                     Category
@@ -847,7 +1359,6 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                   </select>
                 </div>
 
-                {/* Description */}
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
                     About Society / Mission
@@ -862,7 +1373,6 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                   />
                 </div>
 
-                {/* Logo Upload */}
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
                     Society Logo
@@ -940,7 +1450,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
             </div>
           )}
 
-          {/* 3. If Verified Society or Admin: Show Society Profile Manager */}
+          {/* 5. If Verified Society or Admin: Show Society Profile Manager */}
           {(isApprovedSociety || isAdmin) && (
             <div
               className="surface-card"
@@ -1075,7 +1585,6 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                         </p>
                       </div>
                     </div>
-                    {/* Radio indicator */}
                     <div
                       style={{
                         width: 20,
