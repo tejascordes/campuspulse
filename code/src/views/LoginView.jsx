@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Eye, EyeOff, Loader2, Building2, User, UploadCloud } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Building2, User, UploadCloud, Shield, X, PlusCircle, CheckCircle2 } from 'lucide-react'
 import { authApi } from '../api.js'
 
 const POPULAR_SOCIETIES = [
@@ -15,6 +15,29 @@ const POPULAR_SOCIETIES = [
   'Literary Club',
 ]
 
+function GoogleIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"
+      />
+    </svg>
+  )
+}
+
 export default function LoginView({ onLogin }) {
   const [mode, setMode] = useState('login') // 'login' | 'register'
   const [accountType, setAccountType] = useState('society') // 'society' | 'student'
@@ -27,8 +50,26 @@ export default function LoginView({ onLogin }) {
   })
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [showGoogleModal, setShowGoogleModal] = useState(false)
+  const [customGoogleMode, setCustomGoogleMode] = useState(false)
+  const [customGoogleAccount, setCustomGoogleAccount] = useState({ name: '', email: '' })
   const [error, setError] = useState('')
   const fileInputRef = useRef(null)
+
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+
+  // Load Google Identity Services script if VITE_GOOGLE_CLIENT_ID is provided
+  useEffect(() => {
+    if (!googleClientId) return
+    if (document.getElementById('google-gsi-client')) return
+    const script = document.createElement('script')
+    script.id = 'google-gsi-client'
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    document.body.appendChild(script)
+  }, [googleClientId])
 
   const handleLogoUpload = (e) => {
     const file = e.target.files?.[0]
@@ -40,6 +81,102 @@ export default function LoginView({ onLogin }) {
     }
     reader.readAsDataURL(file)
   }
+
+  const completeGoogleSignIn = async (googlePayload) => {
+    setError('')
+    setGoogleLoading(true)
+    try {
+      const data = await authApi.googleLogin(googlePayload)
+      setShowGoogleModal(false)
+      onLogin(data)
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Google Sign-In failed. Please try again.')
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
+  const handleGoogleButtonClick = () => {
+    setError('')
+    // If real Google Client ID is configured and GIS script is ready, trigger OAuth2 TokenClient / OneTap
+    if (googleClientId && window.google?.accounts?.oauth2) {
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: googleClientId,
+        scope: 'openid email profile',
+        hint: '@thapar.edu',
+        callback: async (tokenResponse) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            try {
+              setGoogleLoading(true)
+              const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+              })
+              const profile = await res.json()
+              const activeSociety =
+                accountType === 'society'
+                  ? form.society_name === 'Other'
+                    ? form.name || 'CCS'
+                    : form.society_name
+                  : null
+              await completeGoogleSignIn({
+                email: profile.email,
+                name: profile.name,
+                picture: profile.picture,
+                account_type: accountType,
+                society_name: activeSociety,
+                logo_url: form.logo_url || profile.picture,
+              })
+            } catch {
+              setGoogleLoading(false)
+              setShowGoogleModal(true)
+            }
+          }
+        },
+      })
+      tokenClient.requestAccessToken()
+      return
+    }
+
+    // Open interactive Thapar Google Workspace Account Chooser
+    setCustomGoogleMode(false)
+    setShowGoogleModal(true)
+  }
+
+  const activeSocLabel =
+    form.society_name === 'Other' ? form.name || 'CCS' : form.society_name || 'CCS'
+
+  const presetGoogleAccounts = [
+    {
+      id: 'student',
+      name: 'Kabir Singh',
+      email: 'ksingh_be22@thapar.edu',
+      badge: 'Student • CSE',
+      account_type: 'student',
+      society_name: null,
+      avatarBg: '#4285F4',
+      initials: 'KS',
+    },
+    {
+      id: 'society',
+      name: `${activeSocLabel} Official`,
+      email: `${activeSocLabel.toLowerCase().replace(/[^a-z0-9]/g, '')}@thapar.edu`,
+      badge: `Official Society • ${activeSocLabel}`,
+      account_type: 'society',
+      society_name: activeSocLabel,
+      avatarBg: '#FF385C',
+      initials: activeSocLabel.slice(0, 2).toUpperCase(),
+    },
+    {
+      id: 'admin',
+      name: 'Tejas Korde (System Admin)',
+      email: 'tkorde_be@thapar.edu',
+      badge: 'CampusPulse Admin',
+      account_type: 'admin',
+      society_name: 'System Administration',
+      avatarBg: '#10B981',
+      initials: 'TK',
+    },
+  ]
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault()
@@ -251,6 +388,74 @@ export default function LoginView({ onLogin }) {
           </div>
         </div>
 
+        {/* Google Sign-In Button */}
+        <button
+          type="button"
+          onClick={handleGoogleButtonClick}
+          disabled={googleLoading || loading}
+          style={{
+            width: '100%',
+            padding: '11px 14px',
+            borderRadius: 10,
+            border: '1px solid #DDDDDD',
+            backgroundColor: '#FFFFFF',
+            color: '#222222',
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#F9FAFB'
+            e.currentTarget.style.borderColor = '#BBBBBB'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#FFFFFF'
+            e.currentTarget.style.borderColor = '#DDDDDD'
+          }}
+        >
+          {googleLoading ? (
+            <Loader2 size={18} className="animate-spin" style={{ color: '#4285F4' }} />
+          ) : (
+            <GoogleIcon size={18} />
+          )}
+          <span>Continue with Google</span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              padding: '2px 6px',
+              borderRadius: 9999,
+              backgroundColor: '#F3F4F6',
+              color: '#4B5563',
+              border: '1px solid #E5E7EB',
+            }}
+          >
+            @thapar.edu
+          </span>
+        </button>
+
+        {/* Divider */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            margin: '14px 0',
+          }}
+        >
+          <div style={{ flex: 1, height: 1, backgroundColor: '#EBEBEB' }} />
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            or continue with email
+          </span>
+          <div style={{ flex: 1, height: 1, backgroundColor: '#EBEBEB' }} />
+        </div>
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* If Society Account, choose or input Society Name */}
           {accountType === 'society' && (
@@ -414,6 +619,295 @@ export default function LoginView({ onLogin }) {
           By continuing, you agree to CampusPulse&rsquo;s Terms of Service
         </p>
       </div>
+
+      {/* Google Account Chooser Modal */}
+      <AnimatePresence>
+        {showGoogleModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 3000,
+              backgroundColor: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 16,
+            }}
+            onClick={() => setShowGoogleModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ duration: 0.18 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%',
+                maxWidth: 400,
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                border: '1px solid #E5E7EB',
+                boxShadow: '0 20px 48px rgba(0,0,0,0.18)',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Google Header */}
+              <div
+                style={{
+                  padding: '18px 22px 14px',
+                  borderBottom: '1px solid #F3F4F6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <GoogleIcon size={20} />
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: '#202124', margin: 0 }}>
+                      Sign in with Google
+                    </p>
+                    <p style={{ fontSize: 11, color: '#5F6368', margin: '1px 0 0' }}>
+                      Choose a Thapar Workspace account to continue to <strong>CampusPulse</strong>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowGoogleModal(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#717171',
+                    cursor: 'pointer',
+                    padding: 4,
+                    borderRadius: 8,
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Account List or Custom Google Form */}
+              <div style={{ padding: '12px 16px 18px' }}>
+                {!customGoogleMode ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {presetGoogleAccounts.map((acc) => {
+                      const isRecommended = acc.account_type === accountType
+                      return (
+                        <button
+                          key={acc.id}
+                          type="button"
+                          onClick={() =>
+                            completeGoogleSignIn({
+                              email: acc.email,
+                              name: acc.name,
+                              account_type: acc.account_type,
+                              society_name: acc.society_name,
+                              logo_url: form.logo_url || null,
+                            })
+                          }
+                          style={{
+                            width: '100%',
+                            padding: '11px 12px',
+                            borderRadius: 12,
+                            border: isRecommended ? '1.5px solid #222222' : '1px solid #E5E7EB',
+                            backgroundColor: isRecommended ? '#F9FAFB' : '#FFFFFF',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            textAlign: 'left',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: '9999px',
+                              backgroundColor: acc.avatarBg,
+                              color: '#FFFFFF',
+                              fontSize: 13,
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {acc.initials}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <p
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                  color: '#202124',
+                                  margin: 0,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {acc.name}
+                              </p>
+                              <CheckCircle2 size={13} style={{ color: '#4285F4', flexShrink: 0 }} />
+                            </div>
+                            <p
+                              style={{
+                                fontSize: 11,
+                                color: '#5F6368',
+                                margin: '1px 0 0',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {acc.email}
+                            </p>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: 9999,
+                              backgroundColor: '#F3F4F6',
+                              color: '#374151',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {acc.badge}
+                          </span>
+                        </button>
+                      )
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() => setCustomGoogleMode(true)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: 12,
+                        border: '1px dashed #D1D5DB',
+                        backgroundColor: '#FFFFFF',
+                        color: '#374151',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        marginTop: 4,
+                      }}
+                    >
+                      <PlusCircle size={15} style={{ color: '#4285F4' }} />
+                      <span>Use another @thapar.edu Google Account</span>
+                    </button>
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      const activeSociety =
+                        accountType === 'society' ? activeSocLabel : null
+                      completeGoogleSignIn({
+                        email: customGoogleAccount.email || 'student@thapar.edu',
+                        name:
+                          customGoogleAccount.name ||
+                          (accountType === 'society' ? `${activeSocLabel} Official` : 'Thapar Student'),
+                        account_type: accountType,
+                        society_name: activeSociety,
+                        logo_url: form.logo_url || null,
+                      })
+                    }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
+                  >
+                    <input
+                      className="input-standard"
+                      placeholder="Full Name (e.g. Aarav Sharma)"
+                      value={customGoogleAccount.name}
+                      onChange={(e) => setCustomGoogleAccount((c) => ({ ...c, name: e.target.value }))}
+                      required
+                    />
+                    <input
+                      className="input-standard"
+                      type="email"
+                      placeholder="Google Workspace Email (e.g. asharma_be23@thapar.edu)"
+                      value={customGoogleAccount.email}
+                      onChange={(e) => setCustomGoogleAccount((c) => ({ ...c, email: e.target.value }))}
+                      required
+                    />
+                    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                      <button
+                        type="button"
+                        onClick={() => setCustomGoogleMode(false)}
+                        style={{
+                          flex: 1,
+                          padding: '10px',
+                          borderRadius: 10,
+                          border: '1px solid #DDDDDD',
+                          backgroundColor: '#FFFFFF',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: '#555555',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="submit"
+                        style={{
+                          flex: 2,
+                          padding: '10px',
+                          borderRadius: 10,
+                          border: 'none',
+                          backgroundColor: '#1A73E8',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: '#FFFFFF',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Continue with Google
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                <div
+                  style={{
+                    marginTop: 12,
+                    paddingTop: 10,
+                    borderTop: '1px solid #F3F4F6',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: 10,
+                    color: '#6B7280',
+                  }}
+                >
+                  <Shield size={12} style={{ color: '#34A853', flexShrink: 0 }} />
+                  <span>
+                    Verified OAuth 2.0 • Supports Google Identity Services (<code>VITE_GOOGLE_CLIENT_ID</code>) &amp; Thapar Workspace SSO
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
+

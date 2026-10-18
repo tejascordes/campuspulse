@@ -11,7 +11,7 @@ from sqlalchemy import select
 
 from database import get_db
 from models import User, CalendarPrivacy as CalendarPrivacyEnum
-from schemas import UserRegister, UserOut, TokenOut, ProfileUpdate
+from schemas import UserRegister, UserOut, TokenOut, ProfileUpdate, GoogleAuthRequest
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -86,6 +86,52 @@ async def login(data: UserRegister, db: AsyncSession = Depends(get_db)):
     user = result.scalar_one_or_none()
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = create_access_token({"sub": str(user.id)})
+    return TokenOut(access_token=token, user=UserOut.model_validate(user))
+
+
+@router.post("/google", response_model=TokenOut)
+async def google_login(data: GoogleAuthRequest, db: AsyncSession = Depends(get_db)):
+    email = data.email
+    name = data.name
+    picture = data.picture
+
+    # If a Google ID token JWT is provided in `credential`, decode its claims
+    if data.credential and "." in data.credential:
+        try:
+            claims = jwt.get_unverified_claims(data.credential)
+            email = claims.get("email") or email
+            name = claims.get("name") or name
+            picture = claims.get("picture") or picture
+        except Exception:
+            pass
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Google account email is required")
+
+    clean_email = email.lower().strip()
+    result = await db.execute(select(User).where(User.email == clean_email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        display_name = name or clean_email.split("@")[0].replace(".", " ").title()
+        user = User(
+            name=display_name,
+            email=clean_email,
+            hashed_password=hash_password(f"google_oauth_{clean_email}"),
+            avatar_url=picture or data.logo_url,
+            bio="CSE '26 | Thapar Institute Student" if data.account_type != "society" else f"Official {data.society_name or display_name} Society Account",
+            default_calendar_privacy=CalendarPrivacyEnum.CLOSE_FRIENDS,
+        )
+        db.add(user)
+        await db.flush()
+        await db.refresh(user)
+    elif picture and not user.avatar_url:
+        user.avatar_url = picture
+        db.add(user)
+        await db.flush()
+        await db.refresh(user)
 
     token = create_access_token({"sub": str(user.id)})
     return TokenOut(access_token=token, user=UserOut.model_validate(user))

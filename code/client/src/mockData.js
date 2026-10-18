@@ -1029,6 +1029,53 @@ class MockStore {
     }
   }
 
+  googleLogin(payload = {}) {
+    let { email, name, picture, account_type, society_name, logo_url, credential } = payload
+    // Decode Google JWT credential if passed from Google Identity Services
+    if (credential && typeof credential === "string" && credential.includes(".")) {
+      try {
+        const base64Url = credential.split(".")[1]
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+        const decoded = JSON.parse(window.atob(base64))
+        email = decoded.email || email
+        name = decoded.name || name
+        picture = decoded.picture || picture
+      } catch {
+        // ignore decode error
+      }
+    }
+
+    const cleanEmail = (email || "student@thapar.edu").toLowerCase().trim()
+    const isAdmin = cleanEmail === "tkorde_be@thapar.edu"
+    const isSociety =
+      !isAdmin &&
+      (account_type === "society" || cleanEmail.includes("society") || Boolean(society_name))
+    const socName = society_name || (isSociety ? (name || "CCS") : null)
+
+    const u = {
+      ...this.user,
+      id: this.user?.id || Date.now(),
+      email: cleanEmail,
+      name: isAdmin
+        ? name || "Tejas Korde (System Admin)"
+        : name || (socName ? `${socName} Official` : cleanEmail.split("@")[0].replace(/[._]/g, " ")),
+      account_type: isAdmin ? "admin" : isSociety ? "society" : "student",
+      role: isAdmin ? "admin" : isSociety ? "society_admin" : "student",
+      society_name: isAdmin ? "System Administration" : isSociety ? socName || "CCS" : null,
+      society_status: isAdmin ? "APPROVED" : isSociety ? this.user?.society_status || "APPROVED" : null,
+      logo_url: picture || logo_url || this.user?.logo_url || null,
+      avatar_url: picture || logo_url || this.user?.avatar_url || null,
+      auth_provider: "google",
+    }
+    this.user = u
+    this.persist()
+    return {
+      access_token: "google_oauth_jwt_token_" + Date.now(),
+      token_type: "bearer",
+      user: u,
+    }
+  }
+
   register(name, email, account_type, society_name, logo_url) {
     const cleanEmail = (email || "student@thapar.edu").toLowerCase().trim()
     const isAdmin = cleanEmail === "tkorde_be@thapar.edu"

@@ -169,7 +169,14 @@ function resolveFallback(config, error) {
     return { data: mockStore.user, status: 200 }
   }
 
-  // 11. Auth Login / Register
+  // 11. Auth Login / Register / Google OAuth
+  if (url.includes('/api/auth/google')) {
+    return {
+      data: mockStore.googleLogin(data || {}),
+      status: 200,
+    }
+  }
+
   if (url.includes('/api/auth/login')) {
     return {
       data: mockStore.login(data?.email, data?.password, data?.name, data?.account_type, data?.society_name, data?.logo_url),
@@ -262,7 +269,29 @@ export const authApi = {
       return res.data
     } catch (err) {
       triggerFallbackMode('Auth Server Unavailable')
-      return mockStore.login(credentials.email, credentials.password, credentials.name)
+      return mockStore.login(credentials.email, credentials.password, credentials.name, credentials.account_type, credentials.society_name, credentials.logo_url)
+    }
+  },
+  googleLogin: async (googlePayload) => {
+    try {
+      const res = await apiClient.post('/api/auth/google', googlePayload)
+      // Enrich with local role metadata if needed
+      const localResult = mockStore.googleLogin(googlePayload)
+      return {
+        ...res.data,
+        user: {
+          ...localResult.user,
+          ...res.data.user,
+          account_type: localResult.user.account_type,
+          role: localResult.user.role,
+          society_name: localResult.user.society_name,
+          society_status: localResult.user.society_status,
+          auth_provider: 'google',
+        },
+      }
+    } catch (err) {
+      triggerFallbackMode('Google Auth Fallback')
+      return mockStore.googleLogin(googlePayload)
     }
   },
   register: async (userData) => {
@@ -271,7 +300,7 @@ export const authApi = {
       return res.data
     } catch (err) {
       triggerFallbackMode('Auth Server Unavailable')
-      return mockStore.register(userData.name, userData.email)
+      return mockStore.register(userData.name, userData.email, userData.account_type, userData.society_name, userData.logo_url)
     }
   },
   updateProfile: async (data, token) => {

@@ -34,6 +34,16 @@ class UserLogin(BaseModel):
     password: str
 
 
+class GoogleAuthRequest(BaseModel):
+    credential: Optional[str] = None
+    email: Optional[str] = None
+    name: Optional[str] = None
+    picture: Optional[str] = None
+    account_type: Optional[str] = "student"
+    society_name: Optional[str] = None
+    logo_url: Optional[str] = None
+
+
 class UserOut(BaseModel):
     id: int
     name: str
