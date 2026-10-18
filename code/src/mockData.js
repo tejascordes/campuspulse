@@ -1004,19 +1004,31 @@ class MockStore {
   login(email, password, name, account_type, society_name, logo_url) {
     const cleanEmail = (email || "student@thapar.edu").toLowerCase().trim()
     const isAdmin = cleanEmail === "tkorde_be@thapar.edu"
-    const isSociety = !isAdmin && (account_type === "society" || cleanEmail.includes("society") || Boolean(society_name))
-    const socName = society_name || (isSociety ? (name || "CCS") : null)
-    
+    const knownSoc = ["ccs", "owasp", "mudra", "trident", "ecell", "e-cell", "aagaaz", "rotaract", "quizclub", "fap", "acm"].find(
+      (s) => cleanEmail.startsWith(s + "@") || cleanEmail.startsWith(s + ".") || cleanEmail.includes(s + "_society")
+    )
+    const isSociety =
+      !isAdmin &&
+      (account_type === "society" ||
+        cleanEmail.includes("society") ||
+        Boolean(society_name) ||
+        Boolean(knownSoc))
+    const socName =
+      society_name ||
+      (isSociety ? (knownSoc ? knownSoc.toUpperCase() : name || "CCS") : null)
+
     const u = {
       ...this.user,
       id: this.user?.id || Date.now(),
       email: cleanEmail,
       name: isAdmin
         ? (name || "Tejas Korde (System Admin)")
-        : (name || (socName ? `${socName} Official` : (cleanEmail ? cleanEmail.split("@")[0] : "Campus Student"))),
+        : isSociety
+        ? `${socName} Official`
+        : (name || (cleanEmail ? cleanEmail.split("@")[0].replace(/[._]/g, " ") : "Campus Student")),
       account_type: isAdmin ? "admin" : (isSociety ? "society" : "student"),
       role: isAdmin ? "admin" : (isSociety ? "society_admin" : "student"),
-      society_name: isAdmin ? "System Administration" : (isSociety ? (socName || "CCS") : null),
+      society_name: isAdmin ? "System Administration" : (isSociety ? socName : null),
       society_status: isAdmin ? "APPROVED" : (isSociety ? (this.user?.society_status || "APPROVED") : null),
       logo_url: logo_url || this.user?.logo_url || null,
     }
@@ -1047,22 +1059,32 @@ class MockStore {
 
     const cleanEmail = (email || "student@thapar.edu").toLowerCase().trim()
     const isAdmin = cleanEmail === "tkorde_be@thapar.edu"
+    const knownSoc = ["ccs", "owasp", "mudra", "trident", "ecell", "e-cell", "aagaaz", "rotaract", "quizclub", "fap", "acm"].find(
+      (s) => cleanEmail.startsWith(s + "@") || cleanEmail.startsWith(s + ".") || cleanEmail.includes(s + "_society")
+    )
     const isSociety =
       !isAdmin &&
-      (account_type === "society" || cleanEmail.includes("society") || Boolean(society_name))
-    const socName = society_name || (isSociety ? (name || "CCS") : null)
+      (account_type === "society" ||
+        cleanEmail.includes("society") ||
+        Boolean(society_name) ||
+        Boolean(knownSoc))
+    const socName =
+      society_name ||
+      (isSociety ? (knownSoc ? knownSoc.toUpperCase() : name || "CCS") : null)
 
     const u = {
       ...this.user,
       id: this.user?.id || Date.now(),
       email: cleanEmail,
       name: isAdmin
-        ? name || "Tejas Korde (System Admin)"
-        : name || (socName ? `${socName} Official` : cleanEmail.split("@")[0].replace(/[._]/g, " ")),
+        ? (name || "Tejas Korde (System Admin)")
+        : isSociety
+        ? `${socName} Official`
+        : (name || cleanEmail.split("@")[0].replace(/[._]/g, " ")),
       account_type: isAdmin ? "admin" : isSociety ? "society" : "student",
       role: isAdmin ? "admin" : isSociety ? "society_admin" : "student",
-      society_name: isAdmin ? "System Administration" : isSociety ? socName || "CCS" : null,
-      society_status: isAdmin ? "APPROVED" : isSociety ? this.user?.society_status || "APPROVED" : null,
+      society_name: isAdmin ? "System Administration" : isSociety ? socName : null,
+      society_status: isAdmin ? "APPROVED" : isSociety ? (this.user?.society_status || "APPROVED") : null,
       logo_url: picture || logo_url || this.user?.logo_url || null,
       avatar_url: picture || logo_url || this.user?.avatar_url || null,
       auth_provider: "google",

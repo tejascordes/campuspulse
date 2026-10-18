@@ -101,6 +101,10 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
   const [flairActive, setFlairActive] = useState(user?.flair?.is_active ?? true)
   const [savingFlair, setSavingFlair] = useState(false)
   const [savedFlairMessage, setSavedFlairMessage] = useState('')
+  const [flairAddonExpanded, setFlairAddonExpanded] = useState(false)
+  const [studentBio, setStudentBio] = useState(user?.bio || 'TIET Student · Campus Explorer')
+  const [studentSaving, setStudentSaving] = useState(false)
+  const [studentSaved, setStudentSaved] = useState(false)
 
   // Flair Approval Queue State
   const [flairRequests, setFlairRequests] = useState([])
@@ -295,6 +299,21 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
       console.error('Failed to update profile info:', err)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSaveStudentBio = async (e) => {
+    e.preventDefault()
+    setStudentSaving(true)
+    try {
+      const updated = await authApi.updateProfile({ bio: studentBio }, token)
+      onUpdateUser(updated)
+      setStudentSaved(true)
+      setTimeout(() => setStudentSaved(false), 2000)
+    } catch (err) {
+      console.error('Failed to update student bio:', err)
+    } finally {
+      setStudentSaving(false)
     }
   }
 
@@ -631,37 +650,6 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
             </div>
           </div>
 
-          {/* Society Hierarchy Chain Info Card */}
-          <div
-            className="surface-card"
-            style={{
-              padding: '16px 18px',
-              border: '1px solid #DDDDDD',
-              backgroundColor: '#FAFAFA',
-              borderRadius: 14,
-            }}
-          >
-            <p style={{ fontSize: 10, fontWeight: 800, color: '#FF385C', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>
-              Society Flair Approval Chain
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5 }}>
-                <span style={{ fontWeight: 800, color: '#222222', minWidth: 115 }}>1. Society Account</span>
-                <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
-                <span style={{ color: '#4B5563' }}>Approves <strong>Executive Board (EB)</strong></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5 }}>
-                <span style={{ fontWeight: 800, color: '#222222', minWidth: 115 }}>2. Exec. Board (EB)</span>
-                <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
-                <span style={{ color: '#4B5563' }}>Approves <strong>Core / Exec. Committee</strong></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5 }}>
-                <span style={{ fontWeight: 800, color: '#222222', minWidth: 115 }}>3. Core / Committee</span>
-                <ChevronRight size={13} style={{ color: '#9CA3AF' }} />
-                <span style={{ color: '#4B5563' }}>Approves <strong>Members</strong></span>
-              </div>
-            </div>
-          </div>
 
           {/* Stats Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
@@ -925,52 +913,154 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
         {/* Right Column: Role Actions & Settings */}
         <div className="md:col-span-7" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-          {/* 1. Reddit-Style User Flair & Hierarchy Selection Card */}
+          {/* 1. Student Profile & Bio Card (For Students) */}
+          {isStudent && (
+            <div
+              className="surface-card"
+              style={{ padding: 22, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '9999px',
+                      backgroundColor: '#F3F4F6',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#222222',
+                    }}
+                  >
+                    <User size={16} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: 0 }}>
+                      Student Profile &amp; Bio
+                    </h3>
+                    <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
+                      Customize your campus details and public bio
+                    </p>
+                  </div>
+                </div>
+                {studentSaved && (
+                  <span style={{ fontSize: 11.5, color: '#10B981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Check size={14} /> Saved
+                  </span>
+                )}
+              </div>
+
+              <form onSubmit={handleSaveStudentBio} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 6 }}>
+                    About Me (Bio)
+                  </label>
+                  <textarea
+                    className="input-standard resize-none"
+                    rows={2}
+                    value={studentBio}
+                    onChange={(e) => setStudentBio(e.target.value)}
+                    placeholder="Tell your batchmates about yourself..."
+                  />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 11, color: '#717171' }}>
+                    Thapar Institute • TIET Patiala
+                  </span>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ padding: '8px 18px', fontSize: 12.5 }}
+                    disabled={studentSaving}
+                  >
+                    {studentSaving ? <Loader2 size={13} className="animate-spin" /> : 'Save Bio'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* 2. Society Flair & Hierarchy Badge (Optional Add-on) */}
           <div
             className="surface-card"
-            style={{ padding: 22, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
+            style={{ padding: 20, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div
                   style={{
-                    width: 32,
-                    height: 32,
+                    width: 34,
+                    height: 34,
                     borderRadius: '9999px',
                     backgroundColor: '#FFF5F5',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#FF385C',
+                    flexShrink: 0,
                   }}
                 >
                   <Tag size={16} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 15, fontWeight: 800, color: '#222222', margin: 0 }}>
-                    Society Flair &amp; Hierarchy Rank
-                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <h3 style={{ fontSize: 14.5, fontWeight: 800, color: '#222222', margin: 0 }}>
+                      Society Flair
+                    </h3>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        borderRadius: 6,
+                        backgroundColor: '#F3F4F6',
+                        color: '#6B7280',
+                      }}
+                    >
+                      Optional Add-on
+                    </span>
+                  </div>
                   <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
-                    Each flair tier is approved by the hierarchy level directly above it
+                    Optional society badge displayed beside your name in campus forum replies
                   </p>
                 </div>
               </div>
-              {savedFlairMessage && (
-                <span style={{ fontSize: 11.5, color: '#10B981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Check size={14} /> {savedFlairMessage}
-                </span>
-              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {user?.flair?.society_name && !flairAddonExpanded && (
+                  <SocietyFlairBadge flair={user.flair} size="sm" showStatus={true} />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setFlairAddonExpanded(!flairAddonExpanded)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: 9999,
+                    border: '1px solid #DDDDDD',
+                    backgroundColor: flairAddonExpanded ? '#222222' : '#FFFFFF',
+                    color: flairAddonExpanded ? '#FFFFFF' : '#222222',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {flairAddonExpanded ? 'Collapse' : user?.flair?.society_name ? 'Edit Flair Add-on' : 'Add Society Flair'}
+                </button>
+              </div>
             </div>
 
-            {/* Active Flair Approval Status Banner */}
-            {user?.flair?.society_name && (
+            {/* Active Flair Status Banner (when expanded) */}
+            {user?.flair?.society_name && flairAddonExpanded && (
               <div
                 style={{
+                  marginTop: 14,
                   padding: '10px 14px',
                   borderRadius: 12,
                   backgroundColor: user.flair.status === 'PENDING' ? '#FFFBEB' : '#ECFDF5',
                   border: `1px solid ${user.flair.status === 'PENDING' ? '#FDE68A' : '#A7F3D0'}`,
-                  marginBottom: 14,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -1001,262 +1091,211 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
               </div>
             )}
 
-            {/* Live Flair Preview Banner */}
-            <div
-              style={{
-                padding: '12px 14px',
-                borderRadius: 12,
-                backgroundColor: '#F9FAFB',
-                border: '1px solid #E5E7EB',
-                marginBottom: 16,
-              }}
-            >
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 6px' }}>
-                Live Discussion Preview
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <div
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '9999px',
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #DDDDDD',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 10,
-                    fontWeight: 800,
-                    color: '#222222',
-                  }}
-                >
-                  {initials}
+            {/* Expanded Form */}
+            {flairAddonExpanded && (
+              <form onSubmit={handleSaveFlair} style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #F3F4F6', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* 1. Select Society */}
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>
+                    1. Select Society
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {POPULAR_SOCIETIES.map((soc) => {
+                      const isSelected = flairSociety === soc
+                      return (
+                        <button
+                          key={soc}
+                          type="button"
+                          onClick={() => setFlairSociety(soc)}
+                          style={{
+                            padding: '5px 12px',
+                            borderRadius: '9999px',
+                            fontSize: 12,
+                            fontWeight: isSelected ? 700 : 500,
+                            backgroundColor: isSelected ? '#000000' : '#FFFFFF',
+                            color: isSelected ? '#FFFFFF' : '#222222',
+                            border: isSelected ? '1px solid #000000' : '1px solid #DDDDDD',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          {soc}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#222222' }}>
-                  {user?.name || user?.email?.split('@')[0] || 'You'}
-                </span>
-                {flairActive ? (
-                  <SocietyFlairBadge
-                    flair={{
-                      society_name: flairSociety,
-                      tier: flairTier,
-                      role: flairRole,
-                      status: isAlreadyApprovedForSelection ? 'APPROVED' : 'PENDING',
-                    }}
-                    size="sm"
-                    showStatus={true}
-                  />
-                ) : (
-                  <span style={{ fontSize: 11, color: '#9CA3AF', fontStyle: 'italic' }}>
-                    (Flair hidden)
-                  </span>
-                )}
-                <span style={{ fontSize: 11, color: '#9CA3AF' }}>· Just now</span>
-              </div>
-            </div>
 
-            <form onSubmit={handleSaveFlair} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Step 1: Society Selector Chips */}
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
-                  1. Select Your Society
-                </label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {POPULAR_SOCIETIES.map((soc) => {
-                    const isSelected = flairSociety === soc
-                    return (
-                      <button
-                        key={soc}
-                        type="button"
-                        onClick={() => setFlairSociety(soc)}
-                        style={{
-                          padding: '5px 12px',
-                          borderRadius: '9999px',
-                          fontSize: 12,
-                          fontWeight: isSelected ? 700 : 500,
-                          backgroundColor: isSelected ? '#000000' : '#FFFFFF',
-                          color: isSelected ? '#FFFFFF' : '#222222',
-                          border: isSelected ? '1px solid #000000' : '1px solid #DDDDDD',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        {soc}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Step 2: Select Hierarchy Level */}
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
-                  2. Select Society Hierarchy Level
-                </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {HIERARCHY_TIERS.map((tierItem) => {
-                    const isSelected = flairTier === tierItem.id
-                    const TierIcon = tierItem.icon
-                    return (
-                      <button
-                        key={tierItem.id}
-                        type="button"
-                        onClick={() => handleTierSelect(tierItem.id)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '10px 14px',
-                          borderRadius: 12,
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                          backgroundColor: isSelected ? '#FFF5F5' : '#FFFFFF',
-                          border: isSelected ? '1.5px solid #FF385C' : '1px solid #DDDDDD',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div
+                {/* 2. Select Hierarchy Level */}
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#717171', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 8 }}>
+                    2. Select Hierarchy Tier
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {HIERARCHY_TIERS.map((tierItem) => {
+                      const isSelected = flairTier === tierItem.id
+                      const TierIcon = tierItem.icon
+                      return (
+                        <button
+                          key={tierItem.id}
+                          type="button"
+                          onClick={() => handleTierSelect(tierItem.id)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '10px 14px',
+                            borderRadius: 12,
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            backgroundColor: isSelected ? '#FFF5F5' : '#FFFFFF',
+                            border: isSelected ? '1.5px solid #FF385C' : '1px solid #DDDDDD',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: '9999px',
+                                backgroundColor: isSelected ? '#FF385C' : '#F3F4F6',
+                                color: isSelected ? '#FFFFFF' : '#4B5563',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <TierIcon size={15} />
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 13, fontWeight: 800, color: '#222222', margin: 0 }}>
+                                {tierItem.label}
+                              </p>
+                              <p style={{ fontSize: 11, color: '#717171', margin: '1px 0 0' }}>
+                                {tierItem.approverDesc}
+                              </p>
+                            </div>
+                          </div>
+                          <span
                             style={{
-                              width: 32,
-                              height: 32,
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                              padding: '3px 8px',
                               borderRadius: '9999px',
                               backgroundColor: isSelected ? '#FF385C' : '#F3F4F6',
                               color: isSelected ? '#FFFFFF' : '#4B5563',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0,
                             }}
                           >
-                            <TierIcon size={15} />
-                          </div>
-                          <div>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: '#222222', margin: 0 }}>
-                              {tierItem.label}
-                            </p>
-                            <p style={{ fontSize: 11, color: '#717171', margin: '1px 0 0' }}>
-                              {tierItem.approverDesc}
-                            </p>
-                          </div>
-                        </div>
-                        <span
-                          style={{
-                            fontSize: 10.5,
-                            fontWeight: 700,
-                            padding: '3px 8px',
-                            borderRadius: '9999px',
-                            backgroundColor: isSelected ? '#FF385C' : '#F3F4F6',
-                            color: isSelected ? '#FFFFFF' : '#4B5563',
-                          }}
-                        >
-                          {tierItem.shortLabel}
-                        </span>
-                      </button>
-                    )
-                  })}
+                            {tierItem.shortLabel}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* Step 3: Role / Designation within selected Tier */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#222222' }}>
-                    3. Specific Role / Designation ({currentTierObj.shortLabel})
-                  </label>
-                  <span style={{ fontSize: 11, color: '#FF385C', fontWeight: 600 }}>
-                    {currentTierObj.approverDesc}
-                  </span>
-                </div>
-                <input
-                  className="input-standard"
-                  value={flairRole}
-                  onChange={(e) => setFlairRole(e.target.value)}
-                  placeholder={`e.g. ${currentTierObj.presets.slice(0, 3).join(', ')}`}
-                  style={{ marginBottom: 6 }}
-                />
-                {/* Quick Role Presets for current hierarchy tier */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {currentTierObj.presets.map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setFlairRole(r)}
-                      style={{
-                        padding: '3px 8px',
-                        fontSize: 10.5,
-                        fontWeight: 600,
-                        backgroundColor: flairRole === r ? '#222222' : '#FFFFFF',
-                        border: '1px solid #E5E7EB',
-                        borderRadius: 6,
-                        color: flairRole === r ? '#FFFFFF' : '#4B5563',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Flair Visibility Toggle */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  backgroundColor: '#F7F7F7',
-                  border: '1px solid #DDDDDD',
-                }}
-              >
+                {/* 3. Specific Role */}
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: '#222222', margin: 0 }}>
-                    Show Flair in Discussions
-                  </p>
-                  <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
-                    Visible next to your replies once approved by {flairTier === 'EB' ? `${flairSociety} Society Account` : flairTier === 'CORE' ? `${flairSociety} EB` : `${flairSociety} Core / EC`}
-                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#222222' }}>
+                      3. Specific Role / Designation ({currentTierObj.shortLabel})
+                    </label>
+                    <span style={{ fontSize: 11, color: '#FF385C', fontWeight: 600 }}>
+                      {currentTierObj.approverDesc}
+                    </span>
+                  </div>
+                  <input
+                    className="input-standard"
+                    value={flairRole}
+                    onChange={(e) => setFlairRole(e.target.value)}
+                    placeholder={`e.g. ${currentTierObj.presets.slice(0, 3).join(', ')}`}
+                    style={{ marginBottom: 6 }}
+                  />
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {currentTierObj.presets.map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setFlairRole(r)}
+                        style={{
+                          padding: '3px 8px',
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          backgroundColor: flairRole === r ? '#222222' : '#FFFFFF',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: 6,
+                          color: flairRole === r ? '#FFFFFF' : '#4B5563',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={flairActive}
-                  onChange={(e) => setFlairActive(e.target.checked)}
-                  style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#FF385C' }}
-                />
-              </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11, color: '#717171' }}>
-                  {isAlreadyApprovedForSelection
-                    ? `✓ You already hold verified ${currentTierObj.shortLabel} authority in ${flairSociety}`
-                    : `Requires approval from: ${flairTier === 'EB' ? `${flairSociety} Official Society Account` : flairTier === 'CORE' ? `${flairSociety} Executive Board (EB)` : `${flairSociety} Core / Executive Committee`}`}
-                </span>
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  style={{ padding: '10px 20px', fontSize: 13 }}
-                  disabled={savingFlair}
+                {/* Flair Visibility Toggle */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    backgroundColor: '#F7F7F7',
+                    border: '1px solid #DDDDDD',
+                  }}
                 >
-                  {savingFlair ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : isAlreadyApprovedForSelection ? (
-                    'Equip Verified Flair'
-                  ) : (
-                    'Request Flair Approval'
-                  )}
-                </button>
-              </div>
-            </form>
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: '#222222', margin: 0 }}>
+                      Display Flair in Discussions
+                    </p>
+                    <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0' }}>
+                      Shows next to your forum comments once verified
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={flairActive}
+                    onChange={(e) => setFlairActive(e.target.checked)}
+                    style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#FF385C' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11, color: '#717171' }}>
+                    {isAlreadyApprovedForSelection
+                      ? `✓ You already hold verified ${currentTierObj.shortLabel} status`
+                      : `Requires approval from: ${flairTier === 'EB' ? `${flairSociety} Official Society Account` : flairTier === 'CORE' ? `${flairSociety} Executive Board (EB)` : `${flairSociety} Core Committee`}`}
+                  </span>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ padding: '8px 18px', fontSize: 12.5 }}
+                    disabled={savingFlair}
+                  >
+                    {savingFlair ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : isAlreadyApprovedForSelection ? (
+                      'Equip Verified Flair'
+                    ) : (
+                      'Request Flair Approval'
+                    )}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
 
           {/* 2. Hierarchical Flair Approvals Panel (Level-Above Approval Queue) */}
-          <div
-            className="surface-card"
-            style={{ padding: 22, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
-          >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+          {Boolean((isAdmin || isApprovedSociety || user?.flair?.tier === 'EB' || user?.flair?.tier === 'CORE') && approvableRequests.length > 0) && (
+            <div
+              className="surface-card"
+              style={{ padding: 22, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div
                   style={{
@@ -1477,7 +1516,8 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          )}
 
           {/* 3. If User is Student & Pending Society Account Approval */}
           {isStudent && (appSubmitted || isPendingSociety) && (
