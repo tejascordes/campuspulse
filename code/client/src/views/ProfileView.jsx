@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   XCircle,
   ChevronRight,
+  ChevronDown,
   Calendar as CalendarIcon,
   MapPin,
   Image as ImageIcon,
@@ -133,6 +134,7 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
   const [applyLogoPreview, setApplyLogoPreview] = useState('')
   const [submittingApp, setSubmittingApp] = useState(false)
   const [appSubmitted, setAppSubmitted] = useState(isPendingSociety)
+  const [applySocietyExpanded, setApplySocietyExpanded] = useState(false)
   const applyFileInputRef = useRef(null)
 
   useEffect(() => {
@@ -1574,159 +1576,266 @@ export default function ProfileView({ user, token, onLogout, onUpdateUser, onNav
             </div>
           )}
 
-          {/* 4. If User is Student & Has NOT applied yet -> Society Application Form */}
+          {/* 4. If User is Student & Has NOT applied yet -> Society Application Form (Collapsible) */}
           {isStudent && !appSubmitted && !isPendingSociety && (
             <div
               className="surface-card"
-              style={{ padding: 22, border: '1px solid #DDDDDD', backgroundColor: '#FFFFFF', borderRadius: 16 }}
+              style={{
+                padding: applySocietyExpanded ? 22 : '16px 20px',
+                border: '1px solid #DDDDDD',
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                transition: 'all 0.2s ease',
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '9999px',
-                        backgroundColor: '#FFF5F5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#FF385C',
-                      }}
-                    >
-                      <Building2 size={16} />
-                    </div>
-                    <h3 style={{ fontSize: 16, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.01em' }}>
-                      Apply for Official Society Account
-                    </h3>
+              {/* Collapsible Header */}
+              <div
+                onClick={() => setApplySocietyExpanded(!applySocietyExpanded)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: '9999px',
+                      backgroundColor: '#FFF5F5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#FF385C',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Building2 size={16} />
                   </div>
-                  <p style={{ fontSize: 12, color: '#717171', margin: '6px 0 0', lineHeight: 1.4 }}>
-                    Official Society Accounts can publish campus posts, host events, and approve Executive Board (EB) flairs.
-                  </p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <h3 style={{ fontSize: 14.5, fontWeight: 800, color: '#222222', margin: 0, letterSpacing: '-0.01em' }}>
+                        Apply for Official Society Account
+                      </h3>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: '1px 6px',
+                          borderRadius: 6,
+                          backgroundColor: '#F3F4F6',
+                          color: '#6B7280',
+                        }}
+                      >
+                        Club Leads
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 11, color: '#717171', margin: '2px 0 0', lineHeight: 1.3 }}>
+                      {applySocietyExpanded
+                        ? 'Official Society Accounts can publish campus posts, host events, and approve Executive Board (EB) flairs.'
+                        : 'Lead a club or chapter at Thapar? Click to submit verification for an official society account.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setApplySocietyExpanded(!applySocietyExpanded)
+                    }}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 9999,
+                      border: '1px solid #DDDDDD',
+                      backgroundColor: applySocietyExpanded ? '#222222' : '#FFFFFF',
+                      color: applySocietyExpanded ? '#FFFFFF' : '#222222',
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      transition: 'all 0.15s ease',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    }}
+                  >
+                    <span>{applySocietyExpanded ? 'Collapse' : 'Apply'}</span>
+                    <ChevronDown
+                      size={13}
+                      style={{
+                        transform: applySocietyExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                      }}
+                    />
+                  </button>
                 </div>
               </div>
 
-              <form onSubmit={handleSubmitApplication} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
-                    Society / Club Name
-                  </label>
-                  <input
-                    className="input-standard"
-                    placeholder="e.g. CCS, OWASP, EDC, Mudra, Thapar Nautanki"
-                    value={applyData.society_name}
-                    onChange={(e) => setApplyData((p) => ({ ...p, society_name: e.target.value }))}
-                    required
-                  />
-                </div>
+              {/* Form Content (only visible when expanded) */}
+              {applySocietyExpanded && (
+                <form
+                  onSubmit={handleSubmitApplication}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 14,
+                    marginTop: 18,
+                    paddingTop: 18,
+                    borderTop: '1px solid #F0F0F0',
+                  }}
+                >
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
+                      Society / Club Name
+                    </label>
+                    <input
+                      className="input-standard"
+                      placeholder="e.g. CCS, OWASP, EDC, Mudra, Thapar Nautanki"
+                      value={applyData.society_name}
+                      onChange={(e) => setApplyData((p) => ({ ...p, society_name: e.target.value }))}
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
-                    Category
-                  </label>
-                  <select
-                    className="input-standard"
-                    value={applyData.category}
-                    onChange={(e) => setApplyData((p) => ({ ...p, category: e.target.value }))}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {SOCIETY_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
+                      Category
+                    </label>
+                    <select
+                      className="input-standard"
+                      value={applyData.category}
+                      onChange={(e) => setApplyData((p) => ({ ...p, category: e.target.value }))}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {SOCIETY_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
-                    About Society / Mission
-                  </label>
-                  <textarea
-                    className="input-standard resize-none"
-                    rows={3}
-                    placeholder="Tell us about your team, past flagships, and faculty coordinator..."
-                    value={applyData.description}
-                    onChange={(e) => setApplyData((p) => ({ ...p, description: e.target.value }))}
-                    required
-                  />
-                </div>
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
+                      About Society / Mission
+                    </label>
+                    <textarea
+                      className="input-standard resize-none"
+                      rows={3}
+                      placeholder="Tell us about your team, past flagships, and faculty coordinator..."
+                      value={applyData.description}
+                      onChange={(e) => setApplyData((p) => ({ ...p, description: e.target.value }))}
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
-                    Society Logo
-                  </label>
-                  <input
-                    type="file"
-                    ref={applyFileInputRef}
-                    onChange={handleApplyLogoUpload}
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                  />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    {applyLogoPreview ? (
-                      <div
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#222222', display: 'block', marginBottom: 6 }}>
+                      Society Logo
+                    </label>
+                    <input
+                      type="file"
+                      ref={applyFileInputRef}
+                      onChange={handleApplyLogoUpload}
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {applyLogoPreview ? (
+                        <div
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: '9999px',
+                            border: '2px solid #FF385C',
+                            overflow: 'hidden',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <img src={applyLogoPreview} alt="Logo Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: '9999px',
+                            border: '1px dashed #DDDDDD',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#717171',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <ImageIcon size={18} />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => applyFileInputRef.current?.click()}
                         style={{
-                          width: 48,
-                          height: 48,
+                          padding: '8px 16px',
                           borderRadius: '9999px',
-                          border: '2px solid #FF385C',
-                          overflow: 'hidden',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <img src={applyLogoPreview} alt="Logo Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: '9999px',
-                          border: '1px dashed #DDDDDD',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid #DDDDDD',
+                          color: '#222222',
+                          cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#717171',
-                          flexShrink: 0,
+                          gap: 6,
                         }}
                       >
-                        <ImageIcon size={18} />
-                      </div>
-                    )}
+                        <UploadCloud size={14} />
+                        <span>{applyLogoPreview ? 'Change Logo' : 'Upload Society Logo'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
                     <button
-                      type="button"
-                      onClick={() => applyFileInputRef.current?.click()}
+                      type="submit"
+                      className="btn-primary"
                       style={{
-                        padding: '8px 16px',
-                        borderRadius: '9999px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        backgroundColor: '#FFFFFF',
-                        border: '1px solid #DDDDDD',
-                        color: '#222222',
-                        cursor: 'pointer',
+                        flex: 1,
+                        padding: '12px',
+                        fontSize: 13,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 6,
+                        justifyContent: 'center',
+                        gap: 8,
+                      }}
+                      disabled={submittingApp}
+                    >
+                      {submittingApp ? <Loader2 size={15} className="animate-spin" /> : 'Submit for Admin Approval'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setApplySocietyExpanded(false)}
+                      style={{
+                        padding: '12px 18px',
+                        borderRadius: 10,
+                        border: '1px solid #DDDDDD',
+                        backgroundColor: '#FFFFFF',
+                        color: '#717171',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
                       }}
                     >
-                      <UploadCloud size={14} />
-                      <span>{applyLogoPreview ? 'Change Logo' : 'Upload Society Logo'}</span>
+                      Cancel
                     </button>
                   </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  style={{ padding: '12px', fontSize: 13, marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                  disabled={submittingApp}
-                >
-                  {submittingApp ? <Loader2 size={15} className="animate-spin" /> : 'Submit for Admin Approval'}
-                </button>
-              </form>
+                </form>
+              )}
             </div>
           )}
 
