@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import {
   LogOut,
   Eye,
+  User,
   Users,
   Shield,
   Loader2,
